@@ -609,7 +609,7 @@ function BoutiqueSalesReport() {
       </div>
 
       <div>
-        <div className="grid grid-cols-2 sm:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         <StatCard label="Transactions"     value={sales.length} />
         <StatCard label="Units Sold"       value={totalQty} />
         <StatCard label="Amount Collected" value={`${totalPaid.toLocaleString()} RWF`} color="text-emerald-600" />
