@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   HiOutlineCheckCircle,
   HiOutlineClock,
@@ -25,6 +26,7 @@ import {
   useUpdateProformaMutation,
   useUpdateProformaStatusMutation,
 } from "../../store/services/proformasService";
+import { useAuth } from "../../context/AuthContext";
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -247,6 +249,95 @@ function ItemsEditor({ rows, onChange }: { rows: ItemRow[]; onChange: (rows: Ite
         <div className="flex justify-end mt-2 text-xs font-semibold text-custom-700">
           Subtotal: <span className="ml-2 text-secondary-100">{subtotal.toLocaleString()} RWF</span>
         </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Action Dropdown Menu ────────────────────────────────────────────────────
+
+function ActionMenu({
+  q, canDelete, canEdit, onView, onEdit, onPrint, onDownload, onDelete,
+}: {
+  q: Proforma;
+  canDelete: boolean;
+  canEdit: boolean;
+  onView: () => void;
+  onEdit: () => void;
+  onPrint: () => void;
+  onDownload: () => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0, openUp: false });
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        btnRef.current && !btnRef.current.contains(e.target as Node) &&
+        menuRef.current && !menuRef.current.contains(e.target as Node)
+      ) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleOpen = () => {
+    if (!btnRef.current) return;
+    const rect = btnRef.current.getBoundingClientRect();
+    const menuHeight = 200;
+    const openUp = rect.bottom + menuHeight > window.innerHeight - 8;
+    setPos({
+      top: openUp ? rect.top - menuHeight + window.scrollY : rect.bottom + window.scrollY + 4,
+      left: rect.right - 176 + window.scrollX,
+      openUp,
+    });
+    setOpen((p) => !p);
+  };
+
+  const item = (label: string, icon: React.ReactNode, onClick: () => void, danger = false) => (
+    <button
+      onClick={() => { onClick(); setOpen(false); }}
+      className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium transition-colors hover:bg-custom-100 ${
+        danger ? "text-red-500 hover:text-red-600" : "text-secondary-100"
+      }`}
+    >
+      {icon}{label}
+    </button>
+  );
+
+  return (
+    <div className="flex justify-end">
+      <button
+        ref={btnRef}
+        onClick={handleOpen}
+        className="p-1.5 rounded-lg hover:bg-custom-100 text-custom-700 hover:text-secondary-100 transition-colors"
+      >
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <circle cx="10" cy="4" r="1.5" /><circle cx="10" cy="10" r="1.5" /><circle cx="10" cy="16" r="1.5" />
+        </svg>
+      </button>
+
+      {open && createPortal(
+        <div
+          ref={menuRef}
+          style={{ position: "absolute", top: pos.top, left: pos.left, zIndex: 9999 }}
+          className="w-44 bg-style-500 border border-custom-300 rounded-xl shadow-lg overflow-hidden"
+        >
+          {item("View",     <HiOutlineEye      className="w-4 h-4" />, onView)}
+          {q.status === "draft" && canEdit && item("Edit", <HiOutlinePencil className="w-4 h-4" />, onEdit)}
+          {item("Print",    <HiOutlinePrinter  className="w-4 h-4" />, onPrint)}
+          {item("Download", <HiOutlineDownload className="w-4 h-4" />, onDownload)}
+          {q.status === "draft" && canDelete && (
+            <>
+              <div className="border-t border-custom-200 my-1" />
+              {item("Delete", <HiOutlineTrash className="w-4 h-4" />, onDelete, true)}
+            </>
+          )}
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -576,11 +667,15 @@ function DetailModal({
   onClose,
   onEdit,
   onDeleted,
+  canDelete,
+  canEdit,
 }: {
   quotation: Proforma;
   onClose: () => void;
   onEdit: () => void;
   onDeleted: () => void;
+  canDelete: boolean;
+  canEdit: boolean;
 }) {
   const [updateStatus, { isLoading: updatingStatus }] = useUpdateProformaStatusMutation();
   const [deleteProforma, { isLoading: deleting }]     = useDeleteProformaMutation();
@@ -762,17 +857,19 @@ function DetailModal({
         {/* Footer actions */}
         <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-4 border-t border-custom-300">
           <div className="flex gap-2 flex-wrap">
-            {quotation.status === "draft" && (
+            {quotation.status === "draft" && canEdit && (
               <>
                 <Button onClick={onEdit} variant="outline">
                   <HiOutlinePencil className="w-4 h-4 mr-1" /> Edit
                 </Button>
-                <button
-                  onClick={() => setConfirmDelete(true)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-colors text-sm font-semibold"
-                >
-                  <HiOutlineTrash className="w-4 h-4" /> Delete
-                </button>
+                {canDelete && (
+                  <button
+                    onClick={() => setConfirmDelete(true)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-colors text-sm font-semibold"
+                  >
+                    <HiOutlineTrash className="w-4 h-4" /> Delete
+                  </button>
+                )}
               </>
             )}
             {quotation.status === "sent" && (
@@ -808,6 +905,10 @@ function DetailModal({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ProformasPage() {
+  const { userRole } = useAuth();
+  const canDelete  = ["admin", "daf"].includes(userRole ?? "");
+  const canEdit    = !["accountant"].includes(userRole ?? "");
+  const canCreate  = !["accountant"].includes(userRole ?? "");
   const [search, setSearch]             = useState("");
   const [statusFilter, setStatusFilter] = useState<ProformaStatus | "all">("all");
   const [page, setPage]                 = useState(1);
@@ -851,13 +952,15 @@ export default function ProformasPage() {
               <HiOutlineRefresh className="w-4 h-4" />
               <span className="font-semibold hidden sm:inline">Refresh</span>
             </button>
-            <button
-              onClick={() => setCreating(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-500 hover:bg-primary-600 transition-colors text-white text-sm font-semibold"
-            >
-              <HiOutlinePlus className="w-4 h-4" />
-              New Proforma
-            </button>
+            {canCreate && (
+              <button
+                onClick={() => setCreating(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-500 hover:bg-primary-600 transition-colors text-white text-sm font-semibold"
+              >
+                <HiOutlinePlus className="w-4 h-4" />
+                New Proforma
+              </button>
+            )}
           </div>
         </div>
 
@@ -938,10 +1041,12 @@ export default function ProformasPage() {
             <HiOutlineDocumentText className="w-10 h-10 text-custom-400 mx-auto mb-3" />
             <p className="text-secondary-100 font-semibold">No proformas found</p>
             <p className="text-sm text-custom-700 mt-1 mb-4">Create your first standalone proforma invoice</p>
-            <button onClick={() => setCreating(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors">
-              <HiOutlinePlus className="w-4 h-4" /> New Proforma
-            </button>
+            {canCreate && (
+              <button onClick={() => setCreating(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors">
+                <HiOutlinePlus className="w-4 h-4" /> New Proforma
+              </button>
+            )}
           </Card>
         ) : (
           <Card className="!p-0 overflow-hidden">
@@ -1001,38 +1106,16 @@ export default function ProformasPage() {
                           {new Date(q.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center justify-end gap-1">
-                            {q.status === "draft" && (
-                              <button
-                                onClick={() => setEditing(q)}
-                                className="p-1.5 rounded-lg hover:bg-custom-100 text-custom-700 hover:text-secondary-100 transition-colors"
-                                title="Edit"
-                              >
-                                <HiOutlinePencil className="w-4 h-4" />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => printProforma(q)}
-                              className="p-1.5 rounded-lg hover:bg-custom-100 text-custom-700 hover:text-secondary-100 transition-colors"
-                              title="Print"
-                            >
-                              <HiOutlinePrinter className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => downloadProforma(q).catch(console.error)}
-                              className="p-1.5 rounded-lg hover:bg-custom-100 text-custom-700 hover:text-secondary-100 transition-colors"
-                              title="Download PDF"
-                            >
-                              <HiOutlineDownload className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => setSelected(q)}
-                              className="p-1.5 rounded-lg hover:bg-custom-100 text-custom-700 hover:text-secondary-100 transition-colors"
-                              title="View"
-                            >
-                              <HiOutlineEye className="w-4 h-4" />
-                            </button>
-                          </div>
+                          <ActionMenu
+                            q={q}
+                            canDelete={canDelete}
+                            canEdit={canEdit}
+                            onView={() => setSelected(q)}
+                            onEdit={() => setEditing(q)}
+                            onPrint={() => printProforma(q)}
+                            onDownload={() => downloadProforma(q).catch(console.error)}
+                            onDelete={() => setSelected(q)}
+                          />
                         </td>
                       </tr>
                     );
@@ -1081,6 +1164,8 @@ export default function ProformasPage() {
           onClose={() => setSelected(null)}
           onEdit={() => { setEditing(selected); setSelected(null); }}
           onDeleted={() => setSelected(null)}
+          canDelete={canDelete}
+          canEdit={canEdit}
         />
       )}
 

@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { RootState } from "../index";
 
 export type StockStatus = "available" | "low" | "out-of-stock";
-export type SortieStatus = "pending" | "approved" | "rejected";
+export type SortieStatus = "pending" | "approved" | "taken" | "rejected";
 
 export interface GeneralStockItem {
   id: string;
@@ -40,6 +40,11 @@ export interface GeneralStockSortie {
   sortieDate: string;
   requester?: { id: string; name: string; email: string; role: string };
   approvedBy?: { id: string; name: string; email: string; role: string } | null;
+  takenById?: string | null;
+  takenBy?: { id: string; name: string; email: string; role: string } | null;
+  takenAt?: string | null;
+  stockBefore?: number | null;
+  stockAfter?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -116,9 +121,14 @@ export const generalStockApi = createApi({
       transformResponse: (res: ApiResponse<GeneralStockSortie[]>) => toPaginated(res),
       providesTags: [{ type: "GSSortie", id: "MY" }],
     }),
-    createGeneralStockSortie: builder.mutation<GeneralStockSortie, { stockItemId: string; quantityOut: number; reason: string; notes?: string }>({
+    createGeneralStockSortie: builder.mutation<GeneralStockSortie, { stockItemId?: string; customItemName?: string; quantityOut: number; reason: string; notes?: string }>({
       query: (body) => ({ url: "/sorties", method: "POST", body }),
       transformResponse: (res: ApiResponse<GeneralStockSortie>) => res.data,
+      invalidatesTags: [{ type: "GSSortie", id: "LIST" }, { type: "GSSortie", id: "MY" }],
+    }),
+    createBulkGeneralStockSortie: builder.mutation<GeneralStockSortie[], { items: { stockItemId?: string; customItemName?: string; quantityOut: number; reason: string }[]; notes?: string }>({
+      query: (body) => ({ url: "/sorties/bulk", method: "POST", body }),
+      transformResponse: (res: ApiResponse<GeneralStockSortie[]>) => res.data,
       invalidatesTags: [{ type: "GSSortie", id: "LIST" }, { type: "GSSortie", id: "MY" }],
     }),
     approveGeneralStockSortie: builder.mutation<GeneralStockSortie, string>({
@@ -130,6 +140,11 @@ export const generalStockApi = createApi({
       query: (id) => ({ url: `/sorties/${id}/reject`, method: "PATCH" }),
       transformResponse: (res: ApiResponse<GeneralStockSortie>) => res.data,
       invalidatesTags: (_r, _e, id) => [{ type: "GSSortie", id }, { type: "GSSortie", id: "LIST" }, { type: "GSSortie", id: "MY" }],
+    }),
+    takeGeneralStockSortie: builder.mutation<GeneralStockSortie, string>({
+      query: (id) => ({ url: `/sorties/${id}/take`, method: "PATCH" }),
+      transformResponse: (res: ApiResponse<GeneralStockSortie>) => res.data,
+      invalidatesTags: (_r, _e, id) => [{ type: "GSSortie", id }, { type: "GSSortie", id: "LIST" }, { type: "GSSortie", id: "MY" }, { type: "GSItem", id: "LIST" }],
     }),
   }),
 });
@@ -144,6 +159,8 @@ export const {
   useGetGeneralStockSortiesQuery,
   useGetMyGeneralStockSortiesQuery,
   useCreateGeneralStockSortieMutation,
+  useCreateBulkGeneralStockSortieMutation,
   useApproveGeneralStockSortieMutation,
   useRejectGeneralStockSortieMutation,
+  useTakeGeneralStockSortieMutation,
 } = generalStockApi;

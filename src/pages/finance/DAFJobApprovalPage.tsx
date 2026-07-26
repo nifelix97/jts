@@ -702,7 +702,7 @@ export default function DAFJobApprovalPage() {
                       <HiOutlineBadgeCheck className="w-4 h-4" /> Verify
                     </button>
                   )}
-                  {(isPend || job.status === "verified") && (
+                  {job.status === "verified" && (
                     <button onClick={() => openModal(job, "approve")}
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-green-700 hover:bg-green-50 transition-colors">
                       <HiOutlineCheckCircle className="w-4 h-4" /> Confirm

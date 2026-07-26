@@ -68,6 +68,8 @@ const menuItems: Record<UserRole, MenuItem[]> = {
     { label: "Finance", path: "/admin/finance", icon: HiOutlineCurrencyDollar},
     { label: "Expenses", path: "/admin/expenses", icon: HiOutlineCash },
     { label: "Withdrawals", path: "/admin/withdrawals", icon: HiOutlineTrendingUp },
+    { label: "Recovery", path: "/admin/recovery", icon: HiOutlineCurrencyDollar },
+    { label: "Operations", path: "/admin/operations", icon: HiOutlineClipboardList },
     {
       label: "Stock", path: "/admin/stock", icon: HiOutlineArchive, children: [
         { label: "General Stock",  path: "/admin/stock/general",  icon: HiOutlineArchive },
@@ -165,15 +167,19 @@ const menuItems: Record<UserRole, MenuItem[]> = {
     },
     { label: "Departments", path: "/finance/daf/departments", icon: HiOutlineUsers },
     { label: "Production", path: "/finance/daf/production", icon: HiOutlineCube },
-    { label: "Procurement", path: "/finance/daf/procurement", icon: HiOutlineArchive },
-    { label: "Extra Workers", path: "/finance/daf/extra-workers", icon: HiOutlineUsers },
-    { label: "Emp Overtime", path: "/finance/daf/overtime-management", icon: HiOutlineClock },
     {
       label: "Requests", path: "/finance/daf/requests", icon: HiOutlineClipboardList, children: [
         { label: "Stock Manager",   path: "/finance/daf/stock-requests",     icon: HiOutlineClipboardList },
+        { label: "General Stock",   path: "/finance/daf/general-stock-requests", icon: HiOutlineArchive },
         { label: "Receptionalist",  path: "/finance/daf/reception-requests", icon: HiOutlineClipboardList },
+        { label: "Procurement",     path: "/finance/daf/procurement",         icon: HiOutlineArchive },
       ]
     },
+    { label: "Proforma Invoice", path: "/finance/daf/proforma", icon: HiOutlineDocumentText },
+    { label: "Recovery", path: "/finance/daf/recovery", icon: HiOutlineCurrencyDollar },
+    { label: "Operations", path: "/finance/daf/operations", icon: HiOutlineClipboardList },
+    { label: "Extra Workers", path: "/finance/daf/extra-workers", icon: HiOutlineUsers },
+    { label: "Emp Overtime", path: "/finance/daf/overtime-management", icon: HiOutlineClock },
     { label: "Leave Management", path: "/hr/leave", icon: HiOutlineCalendar },
     {
       label: "Reports", path: "/finance/daf/reports", icon: HiOutlineChartBar, children: [
@@ -188,6 +194,7 @@ const menuItems: Record<UserRole, MenuItem[]> = {
     { label: "Invoices", path: "/finance/accountant1/invoices", icon: HiOutlineDocumentText },
     { label: "Documents", path: "/finance/accountant1/documents", icon: HiOutlineClipboardList },
     { label: "Operations", path: "/finance/accountant1/operations", icon: HiOutlineClipboardList},
+    { label: "Proforma Invoice", path: "/finance/accountant1/proformas", icon: HiOutlineDocumentText },
     { label: "Recovery", path: "/finance/accountant2/recovery", icon: HiOutlineCurrencyDollar },
     { label: "My Leave", path: "/finance/accountant1/leave", icon: HiOutlineCalendar },
     {

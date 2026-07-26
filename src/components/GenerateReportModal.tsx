@@ -15,7 +15,7 @@ interface Props {
 export default function GenerateReportModal({ title, onClose }: Props) {
   const [purpose, setPurpose]           = useState("");
   const [items, setItems]               = useState<ReportItem[]>([{ record: "", quantity: "", amount: "" }]);
-  const [file, setFile]                 = useState<File | null>(null);
+  const [files, setFiles]               = useState<File[]>([]);
   const [notes, setNotes]               = useState("");
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [supervisorId, setSupervisorId] = useState<string>("");
@@ -55,7 +55,7 @@ export default function GenerateReportModal({ title, onClose }: Props) {
         purpose,
         items: items.filter((it) => it.record.trim()),
         notes: notes.trim() || undefined,
-        attachment: file ?? undefined,
+        attachments: files.length > 0 ? files : undefined,
         visibleTo: selectedRoles,
         supervisorId: supervisorId || undefined,
       }).unwrap();
@@ -149,15 +149,26 @@ export default function GenerateReportModal({ title, onClose }: Props) {
           {/* Attachment */}
           <div>
             <label className="block text-xs font-semibold text-secondary-100 mb-1">
-              Attach File <span className="text-custom-700 font-normal">(optional)</span>
+              Attach Files <span className="text-custom-700 font-normal">(optional, up to 10)</span>
             </label>
             <input
               type="file"
+              multiple
               accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => setFiles((p) => [...p, ...Array.from(e.target.files ?? [])])}
               className="w-full text-xs text-custom-700 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary-500 file:text-white hover:file:bg-primary-600"
             />
-            {file && <p className="text-xs text-emerald-600 mt-1">✓ {file.name}</p>}
+            {files.length > 0 && (
+              <ul className="mt-1 space-y-0.5">
+                {files.map((f, i) => (
+                  <li key={i} className="flex items-center justify-between text-xs text-emerald-600">
+                    <span>✓ {f.name}</span>
+                    <button type="button" onClick={() => setFiles((p) => p.filter((_, idx) => idx !== i))}
+                      className="text-red-400 hover:text-red-600 ml-2">✕</button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Notes */}

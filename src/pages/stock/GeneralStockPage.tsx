@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAppSelector } from "../../store/hooks";
 import {
   HiOutlineArchive,
   HiOutlinePlus,
@@ -23,6 +24,7 @@ import {
   useGetGeneralStockSortiesQuery,
   useApproveGeneralStockSortieMutation,
   useRejectGeneralStockSortieMutation,
+  useTakeGeneralStockSortieMutation,
   type GeneralStockItem,
   type GeneralStockSortie,
   type SortieStatus,
@@ -40,6 +42,7 @@ const statusColors: Record<string, string> = {
 const sortieStatusColors: Record<string, string> = {
   pending:  "bg-yellow-100 text-yellow-700",
   approved: "bg-emerald-100 text-emerald-700",
+  taken:    "bg-blue-100 text-blue-700",
   rejected: "bg-red-100 text-red-700",
 };
 
@@ -412,6 +415,9 @@ function ItemsTab() {
 // ─── Sorties Tab ──────────────────────────────────────────────────────────────
 
 function SortiesTab() {
+  const role = useAppSelector((s) => s.auth.user?.role);
+  const canReview = role === "DAF" || role === "ADMIN";
+
   const [statusFilter, setStatusFilter] = useState<SortieStatus | "">("");
   const [search, setSearch]             = useState("");
   const [page, setPage]                 = useState(1);
@@ -421,10 +427,12 @@ function SortiesTab() {
   );
   const [approveTarget, setApproveTarget] = useState<GeneralStockSortie | null>(null);
   const [rejectTarget,  setRejectTarget]  = useState<GeneralStockSortie | null>(null);
+  const [takeTarget,    setTakeTarget]    = useState<GeneralStockSortie | null>(null);
   const [rejectReason,  setRejectReason]  = useState("");
 
   const [approve, { isLoading: approving }] = useApproveGeneralStockSortieMutation();
   const [reject,  { isLoading: rejecting }] = useRejectGeneralStockSortieMutation();
+  const [take,    { isLoading: taking }]    = useTakeGeneralStockSortieMutation();
 
   const handleApprove = async () => {
     if (!approveTarget) return;
@@ -447,6 +455,17 @@ function SortiesTab() {
       setRejectReason("");
     } catch (err: any) {
       toast.error(err?.data?.message ?? "Failed to reject");
+    }
+  };
+
+  const handleTake = async () => {
+    if (!takeTarget) return;
+    try {
+      await take(takeTarget.id).unwrap();
+      toast.success("Items marked as taken — stock deducted");
+      setTakeTarget(null);
+    } catch (err: any) {
+      toast.error(err?.data?.message ?? "Failed to mark as taken");
     }
   };
 
@@ -476,6 +495,7 @@ function SortiesTab() {
           <option value="">All Requests</option>
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
+          <option value="taken">Taken</option>
           <option value="rejected">Rejected</option>
         </select>
         <button onClick={() => refetch()} className="p-2 rounded-xl border border-custom-300 hover:bg-custom-100 transition-colors text-custom-700">
@@ -520,8 +540,8 @@ function SortiesTab() {
                   {sortie.status}
                 </span>
               </div>
-              {sortie.status === "pending" && (
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                {canReview && sortie.status === "pending" && (<>
                   <button onClick={() => setApproveTarget(sortie)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 transition-colors">
                     <HiOutlineCheck className="w-3.5 h-3.5" /> Approve
@@ -530,15 +550,32 @@ function SortiesTab() {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500 text-white text-xs font-semibold hover:bg-red-600 transition-colors">
                     <HiOutlineBan className="w-3.5 h-3.5" /> Reject
                   </button>
-                </div>
-              )}
+                </>)}
+                {sortie.status === "approved" && (
+                  <button onClick={() => setTakeTarget(sortie)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500 text-white text-xs font-semibold hover:bg-blue-600 transition-colors">
+                    <HiOutlineCheckCircle className="w-3.5 h-3.5" /> Mark as Taken
+                  </button>
+                )}
+              </div>
             </div>
             <div className="px-4 py-3 flex flex-wrap items-center gap-4 text-sm">
               <span className="text-custom-700">Qty: <span className="font-bold text-secondary-100">{parseFloat(sortie.quantityOut)} {sortie.stockItem?.unit ?? ""}</span></span>
               {sortie.reason && <span className="text-xs text-custom-700">Reason: <em>"{sortie.reason}"</em></span>}
               {sortie.approvedBy && (
                 <span className="text-xs text-custom-700">
-                  {sortie.status === "approved" ? "Approved" : "Reviewed"} by: <span className="font-medium">{sortie.approvedBy.name}</span>
+                  Approved by: <span className="font-medium">{sortie.approvedBy.name}</span>
+                </span>
+              )}
+              {sortie.takenBy && (
+                <span className="text-xs text-custom-700">
+                  Taken by: <span className="font-medium">{sortie.takenBy.name}</span>
+                  {sortie.takenAt && ` · ${new Date(sortie.takenAt).toLocaleDateString("en-RW", { day: "2-digit", month: "short", year: "numeric" })}`}
+                </span>
+              )}
+              {sortie.stockBefore != null && sortie.stockAfter != null && (
+                <span className="text-xs text-custom-700">
+                  Stock: <span className="font-medium">{sortie.stockBefore}</span> → <span className="font-medium">{sortie.stockAfter}</span>
                 </span>
               )}
             </div>
@@ -569,6 +606,33 @@ function SortiesTab() {
               <button onClick={handleApprove} disabled={approving}
                 className="px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 disabled:opacity-40 transition-colors">
                 {approving ? "Approving..." : "Yes, Approve"}
+              </button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Take Modal */}
+      {takeTarget && (
+        <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
+          <Card className="!p-6 max-w-sm w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <HiOutlineCheckCircle className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-secondary-100">Mark as Taken</h3>
+                <p className="text-xs text-custom-700 mt-0.5 truncate max-w-[200px]">{takeTarget.stockItem?.itemName ?? "Stock Item"}</p>
+              </div>
+            </div>
+            <p className="text-sm text-secondary-100 mb-5">
+              Confirm that <span className="font-bold">{parseFloat(takeTarget.quantityOut)} {takeTarget.stockItem?.unit ?? ""}</span> have been physically handed out to <span className="font-bold">{takeTarget.requester?.name ?? "requester"}</span>? Stock will be deducted.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setTakeTarget(null)} className="px-4 py-2 rounded-xl border border-custom-300 text-sm font-semibold text-secondary-100 hover:bg-custom-100 transition-colors">Cancel</button>
+              <button onClick={handleTake} disabled={taking}
+                className="px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 disabled:opacity-40 transition-colors">
+                {taking ? "Processing..." : "Yes, Mark as Taken"}
               </button>
             </div>
           </Card>

@@ -13,12 +13,13 @@ import { Card } from "../../components/ui";
 import { useGetSalesQuery } from "../../store/services/boutiqueService";
 import { useGetHobeSalesQuery } from "../../store/services/hobeService";
 import { useGetPaymentsQuery } from "../../store/services/paymentsService";
+import { useGetBoutiqueSalesQuery } from "../../store/services/boutiqueStockService";
 import { useAuth } from "../../context/AuthContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Period = "day" | "week" | "month" | "year";
-type Tab = "boutique" | "hobe" | "payments";
+type Tab = "boutique" | "hobe" | "payments" | "boutique-stock";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -250,7 +251,7 @@ function BoutiqueSalesTab() {
   const getExportData = () => ({
     headers: ["Product", "SKU", "Qty", "Total (RWF)", "Paid (RWF)", "Due (RWF)", "Return (RWF)", "Status", "Method", "Customer", "Date"],
     rows: sales.map((s) => [
-      s.product.name, s.product.sku, String(s.quantity),
+      s.product?.name ?? "—", s.product?.sku ?? "—", String(s.quantity),
       Number(s.totalPrice ?? s.quantity * Number(s.unitPrice)).toLocaleString(),
       Number(s.amountPaid).toLocaleString(),
       Number(s.balanceDue ?? 0).toLocaleString(),
@@ -338,8 +339,8 @@ function BoutiqueSalesTab() {
               ) : paginated.map((s) => (
                 <tr key={s.id} className="hover:bg-custom-50 transition-colors">
                   <td className="px-3 py-2.5">
-                    <p className="text-sm font-semibold text-secondary-100">{s.product.name}</p>
-                    <p className="text-xs font-mono text-custom-700">{s.product.sku}</p>
+                    <p className="text-sm font-semibold text-secondary-100">{s.product?.name ?? "—"}</p>
+                    <p className="text-xs font-mono text-custom-700">{s.product?.sku ?? ""}</p>
                   </td>
                   <td className="px-3 py-2.5 text-sm text-secondary-100">{s.quantity}</td>
                   <td className="px-3 py-2.5 text-sm text-secondary-100">
@@ -716,12 +717,195 @@ function HobeSalesTab() {
 
 
 
+// ─── Boutique Stock Sales Tab ─────────────────────────────────────────────────
+
+function BoutiqueStockSalesTab() {
+  const [period, setPeriod]         = useState<Period>("month");
+  const [page, setPage]             = useState(1);
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo]     = useState("");
+  const [useCustom, setUseCustom]   = useState(false);
+
+  const range = useCustom && customFrom && customTo
+    ? { from: customFrom, to: customTo + "T23:59:59.000Z" }
+    : getDateRange(period);
+
+  const { data, isLoading, refetch } = useGetBoutiqueSalesQuery({ from: range.from, to: range.to, limit: 500 });
+  const sales = data?.data ?? [];
+
+  const totalPages    = Math.max(1, Math.ceil(sales.length / PAGE_SIZE));
+  const paginated     = sales.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalQty      = sales.reduce((s, r) => s + r.quantity, 0);
+  const totalPaid     = sales.reduce((s, r) => s + Number(r.amountPaid), 0);
+  const totalExpected = sales.reduce((s, r) => s + Number(r.totalPrice), 0);
+  const totalBalance  = sales.reduce((s, r) => s + Number(r.balanceDue ?? 0), 0);
+  const totalChange   = sales.reduce((s, r) => s + Number(r.changeGiven ?? 0), 0);
+  const partialCount  = sales.filter((r) => r.paymentStatus === "partial").length;
+
+  const byMethod: Record<string, number> = {};
+  sales.forEach((s) => { byMethod[s.paymentMethod] = (byMethod[s.paymentMethod] ?? 0) + Number(s.amountPaid); });
+
+  const getExportData = () => ({
+    headers: ["Item", "Category", "Unit", "Qty", "Unit Price", "Total (RWF)", "Paid (RWF)", "Due (RWF)", "Change (RWF)", "Status", "Method", "Sold By", "Customer", "Date"],
+    rows: sales.map((s) => [
+      s.stockItem?.itemName ?? "—",
+      s.stockItem?.category ?? "—",
+      s.stockItem?.unit ?? "—",
+      String(s.quantity),
+      Number(s.unitPrice).toLocaleString(),
+      Number(s.totalPrice).toLocaleString(),
+      Number(s.amountPaid).toLocaleString(),
+      Number(s.balanceDue ?? 0).toLocaleString(),
+      Number(s.changeGiven ?? 0).toLocaleString(),
+      s.paymentStatus,
+      s.paymentMethod,
+      s.soldBy?.name ?? "—",
+      s.customer?.name ?? "Walk-in",
+      new Date(s.createdAt).toLocaleDateString("en-RW", { day: "2-digit", month: "short", year: "numeric" }),
+    ]),
+    summary: [
+      { label: `Transactions: ${sales.length}   |   Units Sold: ${totalQty}`, value: "" },
+      { label: "Total Expected",    value: `${totalExpected.toLocaleString()} RWF` },
+      { label: "Total Paid",        value: `${totalPaid.toLocaleString()} RWF` },
+      { label: "Total Balance Due", value: `${totalBalance.toLocaleString()} RWF` },
+      { label: "Change Given",      value: `${totalChange.toLocaleString()} RWF` },
+      { label: "NET COLLECTED",     value: `${totalPaid.toLocaleString()} RWF`, bold: true },
+    ] as SummaryRow[],
+  });
+
+  return (
+    <div className="space-y-4">
+      {/* Controls */}
+      <div className="flex flex-wrap items-center gap-3">
+        <PeriodTabs value={period} onChange={(p) => { setPeriod(p); setUseCustom(false); setPage(1); }} />
+        <div className="flex items-center gap-2 ml-auto">
+          <input type="date" value={customFrom}
+            onChange={(e) => { setCustomFrom(e.target.value); setUseCustom(true); setPage(1); }}
+            className="px-2 py-1.5 rounded-lg border border-custom-300 bg-style-500 text-secondary-100 text-xs focus:outline-none focus:border-primary-400 transition-colors" />
+          <span className="text-xs text-custom-700">to</span>
+          <input type="date" value={customTo} min={customFrom}
+            onChange={(e) => { setCustomTo(e.target.value); setUseCustom(true); setPage(1); }}
+            className="px-2 py-1.5 rounded-lg border border-custom-300 bg-style-500 text-secondary-100 text-xs focus:outline-none focus:border-primary-400 transition-colors" />
+          {useCustom && (
+            <button onClick={() => { setCustomFrom(""); setCustomTo(""); setUseCustom(false); setPage(1); }}
+              className="px-2 py-1.5 rounded-lg border border-custom-300 text-xs text-custom-700 hover:bg-custom-100 transition-colors">Clear</button>
+          )}
+          <button onClick={() => refetch()} className="p-1.5 rounded-lg border border-custom-300 hover:bg-custom-100 transition-colors">
+            <HiOutlineRefresh className={`w-4 h-4 text-custom-700 ${isLoading ? "animate-spin" : ""}`} />
+          </button>
+          <PdfButtons title="Boutique Stock Sales" getExportData={getExportData} />
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <StatCard label="Transactions"     value={sales.length} />
+        <StatCard label="Units Sold"       value={totalQty} />
+        <StatCard label="Amount Collected" value={`${totalPaid.toLocaleString()} RWF`}     color="text-emerald-600" />
+        <StatCard label="Expected Revenue" value={`${totalExpected.toLocaleString()} RWF`} color={totalPaid < totalExpected ? "text-orange-600" : "text-emerald-600"}
+          sub={totalPaid < totalExpected ? `Gap: ${(totalExpected - totalPaid).toLocaleString()} RWF` : undefined} />
+        <StatCard label="Partial Payments" value={partialCount} color={partialCount > 0 ? "text-orange-600" : "text-secondary-100"}
+          sub={partialCount > 0 ? `Due: ${totalBalance.toLocaleString()} RWF` : undefined} />
+        <StatCard label="Change Given"     value={`${totalChange.toLocaleString()} RWF`}   color="text-blue-600" />
+      </div>
+
+      {/* Payment method breakdown */}
+      {Object.keys(byMethod).length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(byMethod).map(([method, amount]) => (
+            <div key={method} className={`px-3 py-1.5 rounded-xl text-xs font-semibold ${pmColors[method] ?? "bg-gray-100 text-gray-700"}`}>
+              {method}: {amount.toLocaleString()} RWF
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Table */}
+      <Card className="!p-0 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-custom-100 border-b border-custom-300">
+              <tr>
+                {["Item", "Qty", "Unit Price", "Total", "Paid", "Status", "Method", "Sold By", "Customer", "Date"].map((h) => (
+                  <th key={h} className="px-3 py-2 text-left text-xs font-bold text-secondary-100 uppercase">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-custom-200">
+              {isLoading ? (
+                <tr><td colSpan={10} className="px-4 py-8 text-center text-custom-700 text-sm">Loading...</td></tr>
+              ) : sales.length === 0 ? (
+                <tr><td colSpan={10} className="px-4 py-8 text-center text-custom-700 text-sm">No boutique stock sales in this period</td></tr>
+              ) : paginated.map((s) => (
+                <tr key={s.id} className="hover:bg-custom-50 transition-colors">
+                  <td className="px-3 py-2.5">
+                    <p className="text-sm font-semibold text-secondary-100">{s.stockItem?.itemName ?? "—"}</p>
+                    <p className="text-xs text-custom-700">{s.stockItem?.category ?? ""}</p>
+                  </td>
+                  <td className="px-3 py-2.5 text-sm text-secondary-100">{s.quantity} {s.stockItem?.unit ?? ""}</td>
+                  <td className="px-3 py-2.5 text-sm text-secondary-100">{Number(s.unitPrice).toLocaleString()} RWF</td>
+                  <td className="px-3 py-2.5 text-sm text-secondary-100">{Number(s.totalPrice).toLocaleString()} RWF</td>
+                  <td className="px-3 py-2.5">
+                    <p className="text-sm font-bold text-emerald-600">{Number(s.amountPaid).toLocaleString()} RWF</p>
+                    {Number(s.balanceDue ?? 0) > 0 && <p className="text-xs text-red-600">Due: {Number(s.balanceDue).toLocaleString()} RWF</p>}
+                    {Number(s.changeGiven ?? 0) > 0 && <p className="text-xs text-blue-600">Change: {Number(s.changeGiven).toLocaleString()} RWF</p>}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                      s.paymentStatus === "paid"     ? "bg-emerald-100 text-emerald-700"
+                      : s.paymentStatus === "partial" ? "bg-orange-100 text-orange-700"
+                      : "bg-gray-100 text-gray-600"
+                    }`}>{s.paymentStatus}</span>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${pmColors[s.paymentMethod] ?? "bg-gray-100 text-gray-700"}`}>
+                      {s.paymentMethod}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2.5 text-sm text-secondary-100">{s.soldBy?.name ?? "—"}</td>
+                  <td className="px-3 py-2.5 text-sm text-secondary-100">{s.customer?.name ?? <span className="text-xs text-custom-400">Walk-in</span>}</td>
+                  <td className="px-3 py-2.5 text-xs text-custom-700">
+                    {new Date(s.createdAt).toLocaleDateString("en-RW", { day: "2-digit", month: "short", year: "numeric" })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Summary */}
+      {sales.length > 0 && (
+        <div className="flex justify-end">
+          <div className="border border-custom-300 rounded-xl overflow-hidden w-80">
+            <div className="bg-custom-100 px-4 py-2 font-bold text-secondary-100 text-xs uppercase">Summary</div>
+            {[
+              { label: "Total Expected",  value: `${totalExpected.toLocaleString()} RWF`, cls: "text-secondary-100" },
+              { label: "Total Paid",      value: `${totalPaid.toLocaleString()} RWF`,     cls: "text-emerald-600" },
+              { label: "Total Due",       value: `${totalBalance.toLocaleString()} RWF`,  cls: totalBalance > 0 ? "text-red-500" : "text-secondary-100" },
+              { label: "Change Given",    value: `${totalChange.toLocaleString()} RWF`,   cls: "text-blue-500" },
+            ].map(({ label, value, cls }) => (
+              <div key={label} className="flex justify-between px-4 py-2 border-t border-custom-200">
+                <span className="text-custom-700 text-xs">{label}</span>
+                <span className={`font-bold text-xs ${cls}`}>{value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <Pagination page={page} totalPages={totalPages} total={sales.length} onPage={setPage} />
+    </div>
+  );
+}
+
 // ─── Tab definitions ──────────────────────────────────────────────────────────
 
 const TABS: { value: Tab; label: string; icon: React.ElementType; color: string }[] = [
-  { value: "boutique", label: "Boutique (Reception)", icon: HiOutlineLibrary, color: "text-pink-500" },
-  { value: "payments", label: "Payments Collected",   icon: HiOutlineCash,    color: "text-emerald-500" },
-  { value: "hobe",     label: "Hobe Trade",           icon: HiOutlineLibrary, color: "text-blue-500" },
+  { value: "boutique",       label: "Boutique (Reception)",  icon: HiOutlineLibrary, color: "text-pink-500" },
+  { value: "boutique-stock", label: "Boutique Stock Sales",  icon: HiOutlineLibrary, color: "text-violet-500" },
+  { value: "payments",       label: "Payments Collected",    icon: HiOutlineCash,    color: "text-emerald-500" },
+  { value: "hobe",           label: "Hobe Trade",            icon: HiOutlineLibrary, color: "text-blue-500" },
 ];
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
@@ -741,7 +925,7 @@ export default function Operations() {
             <h1 className="text-2xl md:text-3xl font-bold text-secondary-100">Operations</h1>
           </div>
           <p className="text-sm text-custom-700">
-            Financial overview of Boutique (reception) trade and Hobe trade  read-only accountant view
+            Financial overview of all sales channels  Boutique(reception), Boutique Stock, Payments & Hobe Trade.
           </p>
         </div>
 
@@ -762,9 +946,10 @@ export default function Operations() {
         </div>
 
         {/* Tab content */}
-        {activeTab === "boutique" && <BoutiqueSalesTab />}
-        {activeTab === "hobe"     && <HobeSalesTab />}
-        {activeTab === "payments" && <PaymentsCollectedTab />}
+        {activeTab === "boutique"       && <BoutiqueSalesTab />}
+        {activeTab === "boutique-stock"  && <BoutiqueStockSalesTab />}
+        {activeTab === "hobe"            && <HobeSalesTab />}
+        {activeTab === "payments"        && <PaymentsCollectedTab />}
 
       </div>
     </DashboardLayout>

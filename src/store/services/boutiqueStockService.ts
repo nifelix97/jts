@@ -169,6 +169,11 @@ export const boutiqueStockApi = createApi({
       transformResponse: (res: ApiResponse<BoutiqueStockSortie>) => res.data,
       invalidatesTags: [{ type: "BSSortie", id: "LIST" }, { type: "BSSortie", id: "MY" }],
     }),
+    createBulkBoutiqueStockSortie: builder.mutation<BoutiqueStockSortie[], { items: { stockItemId: string; quantityOut: number; reason: string }[]; notes?: string }>({
+      query: (body) => ({ url: "/sorties/bulk", method: "POST", body }),
+      transformResponse: (res: ApiResponse<BoutiqueStockSortie[]>) => res.data,
+      invalidatesTags: [{ type: "BSSortie", id: "LIST" }, { type: "BSSortie", id: "MY" }],
+    }),
     approveBoutiqueStockSortie: builder.mutation<BoutiqueStockSortie, string>({
       query: (id) => ({ url: `/sorties/${id}/approve`, method: "PATCH" }),
       transformResponse: (res: ApiResponse<BoutiqueStockSortie>, _meta, id) => {
@@ -246,6 +251,7 @@ export const {
   useGetBoutiqueStockSortiesQuery,
   useGetMyBoutiqueStockSortiesQuery,
   useCreateBoutiqueStockSortieMutation,
+  useCreateBulkBoutiqueStockSortieMutation,
   useApproveBoutiqueStockSortieMutation,
   useRejectBoutiqueStockSortieMutation,
   useUpdateBoutiqueStockSortieMutation,

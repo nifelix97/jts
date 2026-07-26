@@ -444,83 +444,133 @@ export default function ProductionOverviewPage({ userRole = "admin" }: { userRol
         </Card>
 
         {/* Department Details Modal */}
-        {showDetailsModal && selectedDept && (
-          <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
-            <Card className="!p-6 max-w-2xl w-full">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-secondary-100">{selectedDept.name} Department</h3>
-                  <p className="text-sm text-custom-700 mt-1">Live performance metrics</p>
-                </div>
-                <button onClick={() => setShowDetailsModal(false)} className="text-custom-700 hover:text-secondary-100">
-                  <HiOutlineX className="w-6 h-6" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-custom-50 border border-custom-200">
-                  <h4 className="text-sm font-bold text-secondary-100 uppercase tracking-wide mb-3">Performance Overview</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    {[
-                      { label: "Active Jobs", value: selectedDept.activeJobs, color: "text-blue-600" },
-                      { label: "Completed (All-Time)", value: selectedDept.completedJobs, color: "text-green-600" },
-                      { label: "Active Workers", value: selectedDept.workers, color: "text-purple-600" },
-                      { label: "Total Jobs Assigned", value: selectedDept.totalJobs, color: "text-secondary-100" },
-                    ].map(({ label, value, color }) => (
-                      <div key={label}>
-                        <p className="text-xs text-custom-700 mb-1">{label}</p>
-                        <p className={`text-2xl font-bold ${color}`}>{value}</p>
-                      </div>
-                    ))}
+        {showDetailsModal && selectedDept && (() => {
+          const deptJobs = allJobs.filter((j) => j.departmentAssignedToId === selectedDeptId);
+          return (
+            <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
+              <Card className="!p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-secondary-100">{selectedDept.name} Department</h3>
+                    <p className="text-sm text-custom-700 mt-1">Live performance metrics</p>
                   </div>
+                  <button onClick={() => setShowDetailsModal(false)} className="text-custom-700 hover:text-secondary-100">
+                    <HiOutlineX className="w-6 h-6" />
+                  </button>
                 </div>
 
-                <div>
-                  <h4 className="text-sm font-bold text-secondary-100 uppercase tracking-wide mb-3">Workload</h4>
-                  <div className="space-y-3">
-                    {selectedDept.workers > 0 && (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-custom-50 border border-custom-200">
+                    <h4 className="text-sm font-bold text-secondary-100 uppercase tracking-wide mb-3">Performance Overview</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      {[
+                        { label: "Active Jobs", value: selectedDept.activeJobs, color: "text-blue-600" },
+                        { label: "Completed (All-Time)", value: selectedDept.completedJobs, color: "text-green-600" },
+                        { label: "Active Workers", value: selectedDept.workers, color: "text-purple-600" },
+                        { label: "Total Jobs Assigned", value: selectedDept.totalJobs, color: "text-secondary-100" },
+                      ].map(({ label, value, color }) => (
+                        <div key={label}>
+                          <p className="text-xs text-custom-700 mb-1">{label}</p>
+                          <p className={`text-2xl font-bold ${color}`}>{value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-secondary-100 uppercase tracking-wide mb-3">Workload</h4>
+                    <div className="space-y-3">
+                      {selectedDept.workers > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-secondary-100">Active Jobs per Worker</span>
+                          <span className="text-sm font-bold text-secondary-100">
+                            {(selectedDept.activeJobs / selectedDept.workers).toFixed(1)}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-secondary-100">Active Jobs per Worker</span>
-                        <span className="text-sm font-bold text-secondary-100">
-                          {(selectedDept.activeJobs / selectedDept.workers).toFixed(1)}
-                        </span>
+                        <span className="text-sm text-secondary-100">Jobs Remaining</span>
+                        <span className="text-sm font-bold text-orange-600">{selectedDept.activeJobs}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={`p-4 rounded-xl border ${selectedDept.activeJobs === 0 ? "bg-green-50 border-green-200" : selectedDept.activeJobs >= 10 ? "bg-red-50 border-red-200" : "bg-blue-50 border-blue-200"}`}>
+                    <div className="flex items-center gap-2">
+                      <HiOutlineCheckCircle className={`w-5 h-5 ${selectedDept.activeJobs === 0 ? "text-green-600" : selectedDept.activeJobs >= 10 ? "text-red-600" : "text-blue-600"}`} />
+                      <div>
+                        <p className={`text-sm font-bold ${selectedDept.activeJobs === 0 ? "text-green-900" : selectedDept.activeJobs >= 10 ? "text-red-900" : "text-blue-900"}`}>Department Status</p>
+                        <p className={`text-xs ${selectedDept.activeJobs === 0 ? "text-green-700" : selectedDept.activeJobs >= 10 ? "text-red-700" : "text-blue-700"}`}>
+                          {selectedDept.activeJobs === 0
+                            ? "No active jobs — department queue is clear"
+                            : selectedDept.activeJobs >= 10
+                            ? "High load — consider redistributing jobs"
+                            : "Normal operation — steady progress on active jobs"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Jobs Table */}
+                  <div>
+                    <h4 className="text-sm font-bold text-secondary-100 uppercase tracking-wide mb-3">
+                      Jobs ({deptJobs.length})
+                    </h4>
+                    {deptJobs.length === 0 ? (
+                      <p className="text-sm text-custom-700 text-center py-4">No jobs assigned to this department.</p>
+                    ) : (
+                      <div className="rounded-xl border border-custom-200 overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-custom-100 border-b border-custom-200">
+                            <tr>
+                              {["Job #", "Title", "Status", "State", "Priority", "Due Date"].map((h) => (
+                                <th key={h} className="px-3 py-2 text-left text-xs font-bold text-secondary-100 uppercase">{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-custom-200 bg-white">
+                            {deptJobs.map((job) => {
+                              const statusCfg = jobStatusConfig[job.status] ?? { label: job.status, bgColor: "bg-gray-100", color: "text-gray-700" };
+                              return (
+                                <tr key={job.id} className="hover:bg-custom-50 transition-colors">
+                                  <td className="px-3 py-2.5 text-xs font-mono font-bold text-primary-600">{job.jobNumber}</td>
+                                  <td className="px-3 py-2.5 text-xs text-secondary-100 max-w-[140px] truncate">{job.title}</td>
+                                  <td className="px-3 py-2.5">
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusCfg.bgColor} ${statusCfg.color}`}>
+                                      {statusCfg.label}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2.5"><StateBadge state={job.state ?? null} /></td>
+                                  <td className="px-3 py-2.5">
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${priorityColor[job.priority] ?? "bg-gray-100 text-gray-700"}`}>
+                                      {job.priority}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2.5 text-xs text-custom-700 whitespace-nowrap">
+                                    {job.dueDate ? job.dueDate.split("T")[0] : "—"}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
                       </div>
                     )}
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-secondary-100">Jobs Remaining</span>
-                      <span className="text-sm font-bold text-orange-600">{selectedDept.activeJobs}</span>
-                    </div>
                   </div>
                 </div>
 
-                <div className={`p-4 rounded-xl border ${selectedDept.activeJobs === 0 ? "bg-green-50 border-green-200" : selectedDept.activeJobs >= 10 ? "bg-red-50 border-red-200" : "bg-blue-50 border-blue-200"}`}>
-                  <div className="flex items-center gap-2">
-                    <HiOutlineCheckCircle className={`w-5 h-5 ${selectedDept.activeJobs === 0 ? "text-green-600" : selectedDept.activeJobs >= 10 ? "text-red-600" : "text-blue-600"}`} />
-                    <div>
-                      <p className={`text-sm font-bold ${selectedDept.activeJobs === 0 ? "text-green-900" : selectedDept.activeJobs >= 10 ? "text-red-900" : "text-blue-900"}`}>Department Status</p>
-                      <p className={`text-xs ${selectedDept.activeJobs === 0 ? "text-green-700" : selectedDept.activeJobs >= 10 ? "text-red-700" : "text-blue-700"}`}>
-                        {selectedDept.activeJobs === 0
-                          ? "No active jobs — department queue is clear"
-                          : selectedDept.activeJobs >= 10
-                          ? "High load — consider redistributing jobs"
-                          : "Normal operation — steady progress on active jobs"}
-                      </p>
-                    </div>
-                  </div>
+                <div className="mt-6">
+                  <button
+                    onClick={() => setShowDetailsModal(false)}
+                    className="w-full px-4 py-2 rounded-xl border border-custom-300 hover:bg-custom-100 transition-colors text-sm font-semibold text-custom-700"
+                  >
+                    Close
+                  </button>
                 </div>
-              </div>
-
-              <div className="mt-6">
-                <button
-                  onClick={() => setShowDetailsModal(false)}
-                  className="w-full px-4 py-2 rounded-xl border border-custom-300 hover:bg-custom-100 transition-colors text-sm font-semibold text-custom-700"
-                >
-                  Close
-                </button>
-              </div>
-            </Card>
-          </div>
-        )}
+              </Card>
+            </div>
+          );
+        })()}
 
       </div>
     </DashboardLayout>
