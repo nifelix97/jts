@@ -32,7 +32,8 @@ export default function EditReportModal({ report, onClose }: Props) {
         }))
       : [{ record: "", quantity: "", amount: "" }]
   );
-  const [file, setFile]                 = useState<File | null>(null);
+  const [files, setFiles]               = useState<File[]>([]);
+  const [removedUrls, setRemovedUrls]   = useState<string[]>([]);
   const [notes, setNotes]               = useState(report.notes ?? "");
   const [selectedRoles, setSelectedRoles] = useState<string[]>(report.visibleTo ?? []);
   const [supervisorId, setSupervisorId] = useState<string>(report.supervisorId ?? "");
@@ -64,7 +65,8 @@ export default function EditReportModal({ report, onClose }: Props) {
     setNotes(report.notes ?? "");
     setSelectedRoles(report.visibleTo ?? []);
     setSupervisorId(report.supervisorId ?? "");
-    setFile(null);
+    setFiles([]);
+    setRemovedUrls([]);
   }, [report]);
 
   const toggleRole = (name: string) =>
@@ -91,7 +93,8 @@ export default function EditReportModal({ report, onClose }: Props) {
         purpose,
         items: items.filter((it) => it.record.trim()),
         notes: notes.trim(),
-        attachment: file ?? undefined,
+        attachments: files.length > 0 ? files : undefined,
+        removeAttachmentUrls: removedUrls.length > 0 ? removedUrls : undefined,
         visibleTo: selectedRoles,
         supervisorId: supervisorId || null,
       }).unwrap();
@@ -198,37 +201,55 @@ export default function EditReportModal({ report, onClose }: Props) {
           {/* Attachment */}
           <div>
             <label className="block text-xs font-semibold text-secondary-100 mb-1">
-              Replace Attachment <span className="text-custom-700 font-normal">(optional)</span>
+              Attachments <span className="text-custom-700 font-normal">(optional, up to 10)</span>
             </label>
-            {report.attachmentUrl && !file && (
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs text-custom-700">Current:</span>
-                <a
-                  href={resolveUrl(report.attachmentUrl)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-primary-500 hover:text-primary-600 transition-colors"
-                >
-                  <HiOutlineEye className="w-3.5 h-3.5" /> View
-                </a>
-                <a
-                  href={resolveUrl(report.attachmentUrl)}
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
-                >
-                  <HiOutlineDownload className="w-3.5 h-3.5" /> Download
-                </a>
-              </div>
-            )}
+            {/* Existing files */}
+            {(() => {
+              const existing = (
+                report.attachmentUrls && report.attachmentUrls.length > 0
+                  ? report.attachmentUrls
+                  : report.attachmentUrl ? [report.attachmentUrl] : []
+              ).filter((u) => !removedUrls.includes(u));
+              return existing.length > 0 ? (
+                <ul className="mb-2 space-y-1">
+                  {existing.map((url, i) => {
+                    const name = url.split('/').pop() ?? url;
+                    return (
+                      <li key={i} className="flex items-center gap-2 text-xs">
+                        <a href={resolveUrl(url)} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-primary-500 hover:text-primary-600 font-semibold">
+                          <HiOutlineEye className="w-3.5 h-3.5" /> {name}
+                        </a>
+                        <a href={resolveUrl(url)} download target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-700 font-semibold">
+                          <HiOutlineDownload className="w-3.5 h-3.5" />
+                        </a>
+                        <button type="button" onClick={() => setRemovedUrls((p) => [...p, url])}
+                          className="text-red-400 hover:text-red-600">✕ Remove</button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null;
+            })()}
             <input
               type="file"
+              multiple
               accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => setFiles((p) => [...p, ...Array.from(e.target.files ?? [])])}
               className="w-full text-xs text-custom-700 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary-500 file:text-white hover:file:bg-primary-600"
             />
-            {file && <p className="text-xs text-emerald-600 mt-1">✓ {file.name}</p>}
+            {files.length > 0 && (
+              <ul className="mt-1 space-y-0.5">
+                {files.map((f, i) => (
+                  <li key={i} className="flex items-center justify-between text-xs text-emerald-600">
+                    <span>✓ {f.name}</span>
+                    <button type="button" onClick={() => setFiles((p) => p.filter((_, idx) => idx !== i))}
+                      className="text-red-400 hover:text-red-600 ml-2">✕</button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Notes */}

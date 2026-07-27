@@ -16,6 +16,7 @@ export interface Report {
   items: ReportItem[];
   notes?: string;
   attachmentUrl?: string;
+  attachmentUrls?: string[];
   visibleTo?: string[];
   supervisorId?: string | null;
   supervisor?: { id: string; name: string; email: string; role: string } | null;
@@ -36,7 +37,8 @@ export interface CreateReportPayload {
   purpose: string;
   items: ReportItem[];
   notes?: string;
-  attachment?: File | null;
+  attachments?: File[];
+  removeAttachmentUrls?: string[];
   visibleTo?: string[];
   supervisorId?: string | null;
 }
@@ -83,13 +85,14 @@ export const reportsApi = createApi({
 
     // POST /reports
     createReport: builder.mutation<Report, CreateReportPayload>({
-      query: ({ title, purpose, items, notes, attachment, visibleTo, supervisorId }) => {
+      query: ({ title, purpose, items, notes, attachments, visibleTo, supervisorId }) => {
         const form = new FormData();
         form.append("title", title);
         form.append("purpose", purpose);
         form.append("items", JSON.stringify(items));
         if (notes) form.append("notes", notes);
-        if (attachment) form.append("attachment", attachment);
+        if (attachments && attachments.length > 0)
+          attachments.forEach((f) => form.append("attachments", f));
         if (visibleTo && visibleTo.length > 0)
           form.append("visibleTo", JSON.stringify(visibleTo));
         if (supervisorId) form.append("supervisorId", supervisorId);
@@ -119,15 +122,17 @@ export const reportsApi = createApi({
 
     // PUT /reports/:id
     updateReport: builder.mutation<Report, { id: string } & Partial<CreateReportPayload>>({
-      query: ({ id, title, purpose, items, notes, attachment, visibleTo, supervisorId }) => {
+      query: ({ id, title, purpose, items, notes, attachments, removeAttachmentUrls, visibleTo, supervisorId }) => {
         const form = new FormData();
         if (title)   form.append("title", title);
         if (purpose) form.append("purpose", purpose);
         if (items)   form.append("items", JSON.stringify(items));
         if (notes !== undefined) form.append("notes", notes);
-        if (attachment) form.append("attachment", attachment);
+        if (attachments && attachments.length > 0)
+          attachments.forEach((f) => form.append("attachments", f));
+        if (removeAttachmentUrls && removeAttachmentUrls.length > 0)
+          form.append("removeAttachmentUrls", JSON.stringify(removeAttachmentUrls));
         if (visibleTo !== undefined) form.append("visibleTo", JSON.stringify(visibleTo));
-        // send empty string to clear, or the id to set
         if (supervisorId !== undefined) form.append("supervisorId", supervisorId ?? "");
         return { url: `/reports/${id}`, method: "PUT", body: form };
       },

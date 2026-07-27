@@ -23,6 +23,7 @@ import {
 const statusConfig: Record<SortieStatus, { label: string; color: string; icon: any; bgColor: string }> = {
   pending:  { label: "Pending",  color: "text-yellow-600", icon: HiOutlineClock,       bgColor: "bg-yellow-100" },
   approved: { label: "Approved", color: "text-green-600",  icon: HiOutlineCheckCircle, bgColor: "bg-green-100"  },
+  taken:    { label: "Taken",    color: "text-blue-600",   icon: HiOutlineCheckCircle, bgColor: "bg-blue-100"   },
   rejected: { label: "Rejected", color: "text-red-600",    icon: HiOutlineXCircle,     bgColor: "bg-red-100"    },
 };
 

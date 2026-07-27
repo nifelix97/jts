@@ -173,18 +173,36 @@ function ReportCard({
             </div>
           )}
 
-          {/* Attachment */}
-          {report.attachmentUrl && (
-            <a
-              href={resolveUrl(report.attachmentUrl)}
-              download
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary-500 hover:text-primary-600 transition-colors"
-            >
-              <HiOutlinePaperClip className="w-4 h-4" /> Download Attachment
-            </a>
-          )}
+          {/* Attachments */}
+          {(() => {
+            const urls: string[] =
+              Array.isArray(report.attachmentUrls) && report.attachmentUrls.length > 0
+                ? report.attachmentUrls
+                : report.attachmentUrl
+                ? [report.attachmentUrl]
+                : [];
+            if (urls.length === 0) return null;
+            return (
+              <div>
+                <p className="text-xs font-bold text-secondary-100 uppercase mb-1.5">Attachments</p>
+                <div className="flex flex-col gap-1">
+                  {urls.map((url, i) => (
+                    <a
+                      key={i}
+                      href={resolveUrl(url)}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary-500 hover:text-primary-600 transition-colors"
+                    >
+                      <HiOutlinePaperClip className="w-4 h-4" />
+                      {url.split("/").pop() ?? `Attachment ${i + 1}`}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
     </Card>

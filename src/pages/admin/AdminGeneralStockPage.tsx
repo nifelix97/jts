@@ -8,6 +8,8 @@ import {
   HiOutlineX,
   HiOutlineCheckCircle,
   HiOutlineExclamationCircle,
+  HiOutlineCheck,
+  HiOutlineBan,
 } from "react-icons/hi";
 import { toast } from "react-toastify";
 import { DashboardLayout } from "../../components";
@@ -19,6 +21,8 @@ import {
   useDeleteGeneralStockItemMutation,
   useCreateGeneralStockEntryMutation,
   useGetGeneralStockSortiesQuery,
+  useApproveGeneralStockSortieMutation,
+  useRejectGeneralStockSortieMutation,
   type GeneralStockItem,
   type GeneralStockSortie,
   type SortieStatus,
@@ -35,6 +39,7 @@ const statusColors: Record<string, string> = {
 const sortieStatusColors: Record<string, string> = {
   pending:  "bg-yellow-100 text-yellow-700",
   approved: "bg-emerald-100 text-emerald-700",
+  taken:    "bg-blue-100 text-blue-700",
   rejected: "bg-red-100 text-red-700",
 };
 
@@ -355,10 +360,40 @@ function SortiesTab() {
   const [statusFilter, setStatusFilter] = useState<SortieStatus | "">("");
   const [search, setSearch]             = useState("");
   const [page, setPage]                 = useState(1);
+  const [approveTarget, setApproveTarget] = useState<GeneralStockSortie | null>(null);
+  const [rejectTarget,  setRejectTarget]  = useState<GeneralStockSortie | null>(null);
+  const [rejectReason,  setRejectReason]  = useState("");
 
   const { data, isLoading, refetch } = useGetGeneralStockSortiesQuery(
     statusFilter ? { status: statusFilter, limit: 200 } : { limit: 200 }
   );
+  const [approve, { isLoading: approving }] = useApproveGeneralStockSortieMutation();
+  const [reject,  { isLoading: rejecting }] = useRejectGeneralStockSortieMutation();
+
+  const handleApprove = async () => {
+    if (!approveTarget) return;
+    try {
+      await approve(approveTarget.id).unwrap();
+      toast.success("Request approved");
+      setApproveTarget(null);
+    } catch (err: any) {
+      toast.error(err?.data?.message ?? "Failed to approve");
+    }
+  };
+
+  const handleReject = async () => {
+    if (!rejectTarget) return;
+    if (!rejectReason.trim()) { toast.error("Please provide a reason"); return; }
+    try {
+      await reject(rejectTarget.id).unwrap();
+      toast.success("Request rejected");
+      setRejectTarget(null);
+      setRejectReason("");
+    } catch (err: any) {
+      toast.error(err?.data?.message ?? "Failed to reject");
+    }
+  };
+
   const filtered: GeneralStockSortie[] = (data?.data ?? []).filter((s) => {
     const q = search.trim().toLowerCase();
     return !q || s.stockItem?.itemName.toLowerCase().includes(q) || s.requester?.name.toLowerCase().includes(q);
@@ -382,6 +417,7 @@ function SortiesTab() {
           <option value="">All Requests</option>
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
+          <option value="taken">Taken</option>
           <option value="rejected">Rejected</option>
         </select>
         <button onClick={() => refetch()} className="p-2 rounded-xl border border-custom-300 hover:bg-custom-100 transition-colors text-custom-700">
@@ -407,16 +443,13 @@ function SortiesTab() {
           <Card className="!p-10 text-center">
             <HiOutlineCheckCircle className="w-8 h-8 text-custom-400 mx-auto mb-2" />
             <p className="text-sm text-secondary-100 font-semibold">No stock requests found</p>
-            <p className="text-xs text-custom-700 mt-1">Requests from Hobe will appear here</p>
           </Card>
         ) : sorties.map((sortie) => (
           <Card key={sortie.id} className="!p-0 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 bg-custom-50 border-b border-custom-200">
               <div className="flex items-center gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-secondary-100">
-                    {sortie.stockItem?.itemName ?? "Stock Item"}
-                  </p>
+                  <p className="text-sm font-semibold text-secondary-100">{sortie.stockItem?.itemName ?? "Stock Item"}</p>
                   <p className="text-xs text-custom-700">
                     Requested by: <span className="font-medium">{sortie.requester?.name ?? "—"}</span>
                     {" · "}{new Date(sortie.createdAt).toLocaleDateString("en-RW", { day: "2-digit", month: "short", year: "numeric" })}
@@ -426,21 +459,88 @@ function SortiesTab() {
                   {sortie.status}
                 </span>
               </div>
-
+              {sortie.status === "pending" && (
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setApproveTarget(sortie)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 transition-colors">
+                    <HiOutlineCheck className="w-3.5 h-3.5" /> Approve
+                  </button>
+                  <button onClick={() => { setRejectTarget(sortie); setRejectReason(""); }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500 text-white text-xs font-semibold hover:bg-red-600 transition-colors">
+                    <HiOutlineBan className="w-3.5 h-3.5" /> Reject
+                  </button>
+                </div>
+              )}
             </div>
             <div className="px-4 py-3 flex flex-wrap items-center gap-4 text-sm">
               <span className="text-custom-700">Qty: <span className="font-bold text-secondary-100">{parseFloat(sortie.quantityOut)} {sortie.stockItem?.unit ?? ""}</span></span>
               {sortie.reason && <span className="text-xs text-custom-700">Reason: <em>"{sortie.reason}"</em></span>}
               {sortie.approvedBy && (
                 <span className="text-xs text-custom-700">
-                  {sortie.status === "approved" ? "Approved" : "Reviewed"} by: <span className="font-medium">{sortie.approvedBy.name}</span>
+                  Approved by: <span className="font-medium">{sortie.approvedBy.name}</span>
                 </span>
               )}
             </div>
           </Card>
         ))}
       </div>
+
       <Pagination page={safePage} totalPages={totalPages} onChange={setPage} />
+
+      {approveTarget && (
+        <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
+          <Card className="!p-6 max-w-sm w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <HiOutlineCheck className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-secondary-100">Approve Request</h3>
+                <p className="text-xs text-custom-700 mt-0.5">{approveTarget.stockItem?.itemName ?? "Stock Item"}</p>
+              </div>
+            </div>
+            <p className="text-sm text-secondary-100 mb-5">
+              Approve request for <span className="font-bold">{parseFloat(approveTarget.quantityOut)} {approveTarget.stockItem?.unit ?? ""}</span> by <span className="font-bold">{approveTarget.requester?.name ?? "requester"}</span>?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setApproveTarget(null)} className="px-4 py-2 rounded-xl border border-custom-300 text-sm font-semibold text-secondary-100 hover:bg-custom-100 transition-colors">Cancel</button>
+              <button onClick={handleApprove} disabled={approving}
+                className="px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 disabled:opacity-40 transition-colors">
+                {approving ? "Approving..." : "Yes, Approve"}
+              </button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {rejectTarget && (
+        <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
+          <Card className="!p-6 max-w-sm w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                <HiOutlineBan className="w-5 h-5 text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-secondary-100">Reject Request</h3>
+                <p className="text-xs text-custom-700 mt-0.5">{rejectTarget.stockItem?.itemName ?? "Stock Item"}</p>
+              </div>
+            </div>
+            <div className="mb-4">
+              <label className="block text-xs font-semibold text-secondary-100 mb-1">Reason *</label>
+              <textarea autoFocus rows={3} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="e.g. Insufficient stock available..."
+                className="w-full px-3 py-2 rounded-xl border border-custom-300 bg-style-500 text-secondary-100 text-sm focus:outline-none focus:border-primary-400 transition-colors resize-none" />
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => { setRejectTarget(null); setRejectReason(""); }} className="px-4 py-2 rounded-xl border border-custom-300 text-sm font-semibold text-secondary-100 hover:bg-custom-100 transition-colors">Cancel</button>
+              <button onClick={handleReject} disabled={rejecting}
+                className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 disabled:opacity-40 transition-colors">
+                {rejecting ? "Rejecting..." : "Reject"}
+              </button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

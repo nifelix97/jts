@@ -56,6 +56,7 @@ import { DepartmentsPage, JobAssignmentPage, ProductionManagerPage, ProductionMa
 import { SuppliersPage, StockReportsPage, BoutiqueStockPage, GeneralStockPage } from "../pages/stock";
 import StockPage from "../pages/stock/StockPage";
 import StockRequestsPage from "../pages/stock/StockRequestsPage";
+import DAFGeneralStockRequestsPage from "../pages/stock/DAFGeneralStockRequestsPage";
 
 // Supervisor Pages
 
@@ -163,6 +164,8 @@ export default function AppRoutes() {
       <Route path="/admin/job-approvals" element={<ProtectedRoute allowedRoles={["admin"]}><DAFJobApprovalPage /></ProtectedRoute>} />
       <Route path="/admin/deliveries" element={<ProtectedRoute allowedRoles={["admin"]}><DeliveriesPage /></ProtectedRoute>} />
       <Route path="/admin/procurement" element={<ProtectedRoute allowedRoles={["admin"]}><ProdurementPage /></ProtectedRoute>} />
+      <Route path="/admin/recovery" element={<ProtectedRoute allowedRoles={["admin"]}><Accountant2RecoveryPage /></ProtectedRoute>} />
+      <Route path="/admin/operations" element={<ProtectedRoute allowedRoles={["admin"]}><Operations /></ProtectedRoute>} />
       <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={["admin"]}><NotificationsPage userRole="admin" userName="Admin" /></ProtectedRoute>} />
       <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={["admin"]}><ProfilePage /></ProtectedRoute>} />
 
@@ -216,10 +219,13 @@ export default function AppRoutes() {
       <Route path="/finance/daf/overtime" element={<ProtectedRoute allowedRoles={["daf"]}><MyOvertimePage /></ProtectedRoute>} />
       <Route path="/finance/daf/proforma" element={<ProtectedRoute allowedRoles={["daf"]}><ProformasPage /></ProtectedRoute>} />
       <Route path="/finance/daf/procurement" element={<ProtectedRoute allowedRoles={["daf", "hr"]}><ProdurementPage /></ProtectedRoute>} />
+      <Route path="/finance/daf/recovery" element={<ProtectedRoute allowedRoles={["daf"]}><Accountant2RecoveryPage /></ProtectedRoute>} />
+      <Route path="/finance/daf/operations" element={<ProtectedRoute allowedRoles={["daf"]}><Operations /></ProtectedRoute>} />
       <Route path="/finance/daf/stock/general" element={<ProtectedRoute allowedRoles={["daf"]}><AdminGeneralStockPage /></ProtectedRoute>} />
       <Route path="/finance/daf/stock/boutique" element={<ProtectedRoute allowedRoles={["daf"]}><AdminBoutiqueStockPage /></ProtectedRoute>} />
       <Route path="/finance/daf/stock/binding" element={<ProtectedRoute allowedRoles={["daf"]}><AdminBindingStockPage /></ProtectedRoute>} />
       <Route path="/finance/daf/stock-requests" element={<ProtectedRoute allowedRoles={["daf", "admin"]}><StockRequestsPage /></ProtectedRoute>} />
+      <Route path="/finance/daf/general-stock-requests" element={<ProtectedRoute allowedRoles={["daf", "admin"]}><DAFGeneralStockRequestsPage /></ProtectedRoute>} />
       <Route path="/finance/daf/reception-requests" element={<ProtectedRoute allowedRoles={["daf", "admin"]}><ReceptionMaterialRequestPage /></ProtectedRoute>} />
       <Route path="/finance/daf/extra-workers" element={<ProtectedRoute allowedRoles={["daf"]}><ExtraWorkersPage /></ProtectedRoute>} />
       <Route path="/finance/daf/overtime-management" element={<ProtectedRoute allowedRoles={["daf"]}><OvertimeManagementPage /></ProtectedRoute>} />
@@ -236,6 +242,7 @@ export default function AppRoutes() {
       <Route path="/finance/accountant1/payroll" element={<ProtectedRoute allowedRoles={["accountant"]}><PayrollPage /></ProtectedRoute>} />
       <Route path="/finance/accountant1/profile" element={<ProtectedRoute allowedRoles={["accountant"]}><ProfilePage /></ProtectedRoute>} />
       <Route path="/finance/accountant1/operations" element={<ProtectedRoute allowedRoles={["accountant"]}><Operations /></ProtectedRoute>} />
+      <Route path="/finance/accountant1/proformas" element={<ProtectedRoute allowedRoles={["accountant"]}><ProformasPage /></ProtectedRoute>} />
       <Route path="/finance/accountant1/leave" element={<ProtectedRoute allowedRoles={["accountant"]}><MyLeavePage /></ProtectedRoute>} />
       <Route path="/finance/accountant1/overtime" element={<ProtectedRoute allowedRoles={["accountant"]}><MyOvertimePage /></ProtectedRoute>} />
       <Route path="/finance/accountant1/reports" element={<ProtectedRoute allowedRoles={["accountant"]}><AccountantReportsPage /></ProtectedRoute>} />

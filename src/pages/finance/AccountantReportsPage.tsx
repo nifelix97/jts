@@ -118,12 +118,11 @@ async function buildPdf(title: string, headers: string[], rows: (string | null)[
   autoTable(pdf, {
     head: [headers], body: rows,
     startY: TABLE_START_Y,
-    margin: { left: 10, right: 10, bottom: BOTTOM_MARGIN },
+    margin: { top: 10, left: 10, right: 10, bottom: BOTTOM_MARGIN },
     styles: { fontSize: 7, cellPadding: 2 },
     headStyles: { fillColor: [0, 160, 210], textColor: 255, fontStyle: "bold" },
     alternateRowStyles: { fillColor: [245, 251, 255] },
     didDrawPage: (data: { pageNumber: number }) => {
-      if (data.pageNumber > 1) drawLetterhead(pdf, headerBase64, title, subtitle);
       drawFooter(pdf, data.pageNumber, (pdf as any).internal.getNumberOfPages());
     },
   });

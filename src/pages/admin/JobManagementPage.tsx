@@ -125,10 +125,10 @@ function RowMenu({ job, onAction, onView, onEdit, onDelete }: RowMenuProps) {
   }, [open]);
 
   const s = job.status;
-  const canApprove  = s === "pending" || s === "verified";
+  const canApprove  = s === "verified";
   const canAssign   = s !== "rejected" && s !== "pending" && s !== "delivered";
   const canReject   = s !== "rejected" && s !== "completed" && s !== "delivered";
-  const canVerify   = s === "completed";
+  const canVerify   = s === "pending";
   const canComplete = s !== "completed" && s !== "delivered" && s !== "rejected" && s !== "pending" && s !== "verified";
 
   type Item = { label: string; mode?: ActionMode; cls: string; icon: React.ReactNode; action?: () => void };
