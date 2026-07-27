@@ -9,6 +9,7 @@ import {
   HiOutlineCheck,
   HiOutlineCash,
   HiOutlineFilter,
+  HiOutlineEye,
 } from "react-icons/hi";
 import { useAuth } from "../../context/AuthContext";
 import { DashboardLayout } from "../../components";
@@ -19,6 +20,7 @@ import {
   useUpdatePayrollMutation,
   useApprovePayrollMutation,
   useMarkPayrollPaidMutation,
+  useRejectPayrollMutation,
   useDeletePayrollMutation,
   type Payroll,
   type CreatePayrollPayload,
@@ -36,6 +38,7 @@ const STATUS_STYLES: Record<PayrollStatus, string> = {
   draft: "bg-yellow-100 text-yellow-700",
   approved: "bg-blue-100 text-blue-700",
   paid: "bg-green-100 text-green-700",
+  rejected: "bg-red-100 text-red-700",
 };
 
 function currentPeriod() {
@@ -45,6 +48,7 @@ function currentPeriod() {
 
 export default function PayrollPage() {
   const { userRole, userName: authUserName } = useAuth();
+  const isReadOnly = userRole === "accountant";
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [filterType, setFilterType] = useState<WorkerType | "">("");
@@ -54,12 +58,14 @@ export default function PayrollPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [editPayroll, setEditPayroll] = useState<Payroll | null>(null);
   const [deletePayroll, setDeletePayroll] = useState<Payroll | null>(null);
-  const [confirmAction, setConfirmAction] = useState<{ payroll: Payroll; action: "approve" | "pay" } | null>(null);
+  const [viewPayroll, setViewPayroll] = useState<Payroll | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ payroll: Payroll; action: "approve" | "pay" | "reject" } | null>(null);
 
   const [approve, { isLoading: approving }] = useApprovePayrollMutation();
   const [markPaid, { isLoading: paying }] = useMarkPayrollPaidMutation();
+  const [reject, { isLoading: rejecting }] = useRejectPayrollMutation();
 
-  const { data, isLoading } = useGetPayrollsQuery({
+  const { data, isLoading, isFetching, refetch } = useGetPayrollsQuery({
     page,
     limit: 15,
     ...(filterType ? { workerType: filterType } : {}),
@@ -92,9 +98,16 @@ export default function PayrollPage() {
             <h1 className="text-3xl font-bold text-secondary-100">Payroll</h1>
             <p className="mt-1 text-sm text-custom-700">{total} records</p>
           </div>
-          <Button onClick={() => setShowCreate(true)} className="flex items-center gap-2 text-sm">
-            <HiOutlinePlus className="h-4 w-4" /> New Payroll
-          </Button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => refetch()} disabled={isFetching}
+              className="p-2 rounded-lg border border-custom-300 hover:bg-custom-50 text-custom-500 hover:text-secondary-100 disabled:opacity-50"
+              title="Refresh">
+              <HiOutlineRefresh className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+            </button>
+            <Button onClick={() => setShowCreate(true)} className="flex items-center gap-2 text-sm">
+              <HiOutlinePlus className="h-4 w-4" /> New Payroll
+            </Button>
+          </div>
         </div>
 
         {/* Summary cards */}
@@ -202,34 +215,45 @@ export default function PayrollPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          {p.status === "draft" && (
+                          <button onClick={() => setViewPayroll(p)}
+                            className="p-1.5 rounded hover:bg-custom-100 text-custom-400 hover:text-secondary-100"
+                            title="View">
+                            <HiOutlineEye className="h-4 w-4" />
+                          </button>
+                          {!isReadOnly && (
                             <>
-                              <button onClick={() => setConfirmAction({ payroll: p, action: "approve" })}
-                                className="flex items-center gap-1 px-2 py-1 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-semibold"
-                                title="Approve">
-                                <HiOutlineCheck className="h-3.5 w-3.5" /> Approve
-                              </button>
-                              <button onClick={() => setEditPayroll(p)}
-                                className="p-1.5 rounded hover:bg-primary-50 text-custom-400 hover:text-primary-600"
-                                title="Edit">
-                                <HiOutlinePencil className="h-4 w-4" />
-                              </button>
-                              <button onClick={() => setDeletePayroll(p)}
-                                className="p-1.5 rounded hover:bg-red-50 text-custom-400 hover:text-red-600"
-                                title="Delete">
-                                <HiOutlineTrash className="h-4 w-4" />
-                              </button>
+                              {p.status === "draft" && (
+                                <>
+                                  <button onClick={() => setConfirmAction({ payroll: p, action: "approve" })}
+                                    className="flex items-center gap-1 px-2 py-1 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-semibold"
+                                    title="Approve">
+                                    <HiOutlineCheck className="h-3.5 w-3.5" /> Approve
+                                  </button>
+                                  <button onClick={() => setConfirmAction({ payroll: p, action: "reject" })}
+                                    className="flex items-center gap-1 px-2 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold"
+                                    title="Reject">
+                                    <HiOutlineX className="h-3.5 w-3.5" /> Reject
+                                  </button>
+                                  <button onClick={() => setEditPayroll(p)}
+                                    className="p-1.5 rounded hover:bg-primary-50 text-custom-400 hover:text-primary-600"
+                                    title="Edit">
+                                    <HiOutlinePencil className="h-4 w-4" />
+                                  </button>
+                                  <button onClick={() => setDeletePayroll(p)}
+                                    className="p-1.5 rounded hover:bg-red-50 text-custom-400 hover:text-red-600"
+                                    title="Delete">
+                                    <HiOutlineTrash className="h-4 w-4" />
+                                  </button>
+                                </>
+                              )}
+                              {p.status === "approved" && (
+                                <button onClick={() => setConfirmAction({ payroll: p, action: "pay" })}
+                                  className="flex items-center gap-1 px-2 py-1 rounded-lg border border-green-200 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-semibold"
+                                  title="Mark Paid">
+                                  <HiOutlineCash className="h-3.5 w-3.5" /> Mark Paid
+                                </button>
+                              )}
                             </>
-                          )}
-                          {p.status === "approved" && (
-                            <button onClick={() => setConfirmAction({ payroll: p, action: "pay" })}
-                              className="flex items-center gap-1 px-2 py-1 rounded-lg border border-green-200 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-semibold"
-                              title="Mark Paid">
-                              <HiOutlineCash className="h-3.5 w-3.5" /> Mark Paid
-                            </button>
-                          )}
-                          {p.status === "paid" && (
-                            <span className="text-xs text-custom-400 italic">—</span>
                           )}
                         </div>
                       </td>
@@ -252,6 +276,7 @@ export default function PayrollPage() {
         )}
       </div>
 
+      {viewPayroll && <PayrollViewModal payroll={viewPayroll} onClose={() => setViewPayroll(null)} />}
       {showCreate && <PayrollFormModal onClose={() => setShowCreate(false)} />}
       {editPayroll && <PayrollFormModal payroll={editPayroll} onClose={() => setEditPayroll(null)} />}
       {deletePayroll && <DeletePayrollModal payroll={deletePayroll} onClose={() => setDeletePayroll(null)} />}
@@ -259,9 +284,10 @@ export default function PayrollPage() {
         <ConfirmActionModal
           payroll={confirmAction.payroll}
           action={confirmAction.action}
-          isLoading={confirmAction.action === "approve" ? approving : paying}
-          onConfirm={async () => {
+          isLoading={confirmAction.action === "approve" ? approving : confirmAction.action === "reject" ? rejecting : paying}
+          onConfirm={async (comment) => {
             if (confirmAction.action === "approve") await approve(confirmAction.payroll.id);
+            else if (confirmAction.action === "reject") await reject({ id: confirmAction.payroll.id, rejectionComment: comment ?? "" });
             else await markPaid(confirmAction.payroll.id);
             setConfirmAction(null);
           }}
@@ -322,7 +348,7 @@ function PayrollFormModal({ payroll, onClose }: { payroll?: Payroll; onClose: ()
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-custom-200 sticky top-0 bg-white z-10">
           <h2 className="text-lg font-bold text-secondary-100">{isEdit ? "Edit Payroll" : "New Payroll"}</h2>
           <button onClick={onClose} className="text-custom-400 hover:text-custom-700"><HiOutlineX className="h-5 w-5" /></button>
@@ -456,7 +482,7 @@ function DeletePayrollModal({ payroll, onClose }: { payroll: Payroll; onClose: (
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl">
         <div className="px-6 py-4 border-b border-custom-200">
           <h2 className="text-lg font-bold text-secondary-100">Delete Payroll</h2>
         </div>
@@ -488,46 +514,113 @@ function ConfirmActionModal({
   payroll, action, isLoading, onConfirm, onClose,
 }: {
   payroll: Payroll;
-  action: "approve" | "pay";
+  action: "approve" | "pay" | "reject";
   isLoading: boolean;
-  onConfirm: () => void;
+  onConfirm: (comment?: string) => void;
   onClose: () => void;
 }) {
+  const [comment, setComment] = useState("");
   const name = payroll.casualWorker?.fullName ?? payroll.employee?.fullName ?? payroll.workerName ?? "this worker";
   const isApprove = action === "approve";
+  const isReject = action === "reject";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl">
         <div className="px-6 py-4 border-b border-custom-200 flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isApprove ? "bg-blue-100" : "bg-green-100"}`}>
+          <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isApprove ? "bg-blue-100" : isReject ? "bg-red-100" : "bg-green-100"}`}>
             {isApprove
               ? <HiOutlineCheck className="h-5 w-5 text-blue-600" />
+              : isReject
+              ? <HiOutlineX className="h-5 w-5 text-red-600" />
               : <HiOutlineCash className="h-5 w-5 text-green-600" />}
           </div>
           <h2 className="text-lg font-bold text-secondary-100">
-            {isApprove ? "Approve Payroll" : "Mark as Paid"}
+            {isApprove ? "Approve Payroll" : isReject ? "Reject Payroll" : "Mark as Paid"}
           </h2>
         </div>
         <div className="p-6 space-y-4">
           <p className="text-sm text-custom-700">
             {isApprove ? (
               <>Approve payroll for <span className="font-bold text-secondary-100">{name}</span> — period <span className="font-bold text-secondary-100">{payroll.period}</span>, net <span className="font-bold text-secondary-100">{Number(payroll.netSalary).toLocaleString("en-RW")} RWF</span>?</>
+            ) : isReject ? (
+              <>Reject payroll for <span className="font-bold text-secondary-100">{name}</span> — period <span className="font-bold text-secondary-100">{payroll.period}</span>?</>
             ) : (
               <>Mark payroll for <span className="font-bold text-secondary-100">{name}</span> — period <span className="font-bold text-secondary-100">{payroll.period}</span>, net <span className="font-bold text-secondary-100">{Number(payroll.netSalary).toLocaleString("en-RW")} RWF</span> as paid?</>
             )}
           </p>
+          {isReject && (
+            <div>
+              <label className={labelCls}>Reason <span className="text-red-500">*</span></label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={3}
+                placeholder="Enter rejection reason…"
+                className={inputCls + " resize-none"}
+              />
+            </div>
+          )}
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={onClose} disabled={isLoading} className="text-sm">Cancel</Button>
             <button
-              onClick={onConfirm}
-              disabled={isLoading}
+              onClick={() => onConfirm(isReject ? comment : undefined)}
+              disabled={isLoading || (isReject && !comment.trim())}
               className={`px-4 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-50 ${
-                isApprove ? "bg-blue-600 hover:bg-blue-700" : "bg-green-600 hover:bg-green-700"
+                isApprove ? "bg-blue-600 hover:bg-blue-700" : isReject ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
               }`}>
-              {isLoading ? "Processing…" : isApprove ? "Yes, Approve" : "Yes, Mark Paid"}
+              {isLoading ? "Processing…" : isApprove ? "Yes, Approve" : isReject ? "Yes, Reject" : "Yes, Mark Paid"}
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── View Modal ───────────────────────────────────────────────────────────────
+
+function PayrollViewModal({ payroll, onClose }: { payroll: Payroll; onClose: () => void }) {
+  const name = payroll.casualWorker?.fullName ?? payroll.employee?.fullName ?? payroll.workerName ?? "—";
+
+  const rows: [string, string][] = [
+    ["Worker", name],
+    ["Type", payroll.workerType],
+    ["Period", payroll.period],
+    ["Base Salary", `${Number(payroll.salary).toLocaleString("en-RW")} RWF`],
+    ["Overtime", Number(payroll.overtime) > 0 ? `+${Number(payroll.overtime).toLocaleString("en-RW")} RWF` : "—"],
+    ["Deductions", Number(payroll.deductions) > 0 ? `-${Number(payroll.deductions).toLocaleString("en-RW")} RWF` : "—"],
+    ["Net Salary", `${Number(payroll.netSalary).toLocaleString("en-RW")} RWF`],
+    ["Status", payroll.status],
+    ...(payroll.notes ? [["Notes", payroll.notes] as [string, string]] : []),
+    ...(payroll.rejectionComment ? [["Rejection Reason", payroll.rejectionComment] as [string, string]] : []),
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-custom-200">
+          <h2 className="text-lg font-bold text-secondary-100">Payroll Details</h2>
+          <button onClick={onClose} className="text-custom-400 hover:text-custom-700"><HiOutlineX className="h-5 w-5" /></button>
+        </div>
+        <div className="p-6 space-y-3">
+          {rows.map(([label, value]) => (
+            <div key={label} className="flex justify-between items-start gap-4 text-sm">
+              <span className="text-custom-500 font-semibold shrink-0">{label}</span>
+              <span className={`text-right font-medium ${
+                label === "Status"
+                  ? `px-2 py-0.5 rounded-full text-xs ${STATUS_STYLES[payroll.status]}`
+                  : label === "Net Salary"
+                  ? "text-secondary-100 font-bold"
+                  : label === "Rejection Reason"
+                  ? "text-red-600"
+                  : "text-secondary-100"
+              }`}>{value}</span>
+            </div>
+          ))}
+        </div>
+        <div className="px-6 py-4 border-t border-custom-100 flex justify-end">
+          <Button variant="outline" onClick={onClose} className="text-sm">Close</Button>
         </div>
       </div>
     </div>

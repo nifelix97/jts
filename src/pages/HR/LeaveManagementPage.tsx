@@ -211,7 +211,7 @@ function RequestLeaveModal({ onClose, onSuccess }: { onClose: () => void; onSucc
 
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="!p-6 max-w-lg w-full my-8">
+      <Card className="!p-6 max-w-2xl w-full my-8">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="text-xl font-bold text-secondary-100">Request Leave</h3>
@@ -275,7 +275,7 @@ function RequestLeaveModal({ onClose, onSuccess }: { onClose: () => void; onSucc
 function MyLeaveDetailModal({ leave, onClose }: { leave: LeaveRequest; onClose: () => void }) {
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="!p-6 max-w-md w-full my-8">
+      <Card className="!p-6 max-w-2xl w-full my-8">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-xl font-bold text-secondary-100">Leave Details</h3>
           <button onClick={onClose} className="text-custom-700 hover:text-secondary-100"><HiOutlineX className="w-6 h-6" /></button>
@@ -377,7 +377,7 @@ function EditLeaveModal({ leave, onClose }: { leave: LeaveRequest; onClose: () =
 
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="!p-6 max-w-lg w-full my-8">
+      <Card className="!p-6 max-w-2xl w-full my-8">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="text-xl font-bold text-secondary-100">Edit Leave Request</h3>
@@ -686,7 +686,7 @@ function ReviewModal({
 
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="!p-6 max-w-md w-full my-8">
+      <Card className="!p-6 max-w-2xl w-full my-8">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-secondary-100">
             {action === "approve" ? "Approve Leave" : "Reject Leave"}
@@ -787,7 +787,7 @@ function LeaveDetailModal({
 }) {
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="!p-6 max-w-md w-full my-8">
+      <Card className="!p-6 max-w-2xl w-full my-8">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-xl font-bold text-secondary-100">Leave Request Details</h3>
           <button onClick={onClose} className="text-custom-700 hover:text-secondary-100">

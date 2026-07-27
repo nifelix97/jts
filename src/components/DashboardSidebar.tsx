@@ -191,6 +191,7 @@ const menuItems: Record<UserRole, MenuItem[]> = {
     // { label: "Documents", path: "/finance/accountant1/documents", icon: HiOutlineClipboardList },
     { label: "Operations", path: "/finance/accountant1/operations", icon: HiOutlineClipboardList},
     { label: "Recovery", path: "/finance/accountant2/recovery", icon: HiOutlineCurrencyDollar },
+    { label: "Payroll", path: "/finance/accountant1/payroll", icon: HiOutlineCurrencyDollar },
     { label: "My Leave", path: "/finance/accountant1/leave", icon: HiOutlineCalendar },
     {
       label: "Reports", path: "/finance/accountant1/reports", icon: HiOutlineChartBar, children: [

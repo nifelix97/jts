@@ -359,7 +359,7 @@ function DeleteConfirmModal({ invoice, onClose }: { invoice: Invoice; onClose: (
 
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
-      <Card className="!p-6 max-w-md w-full">
+      <Card className="!p-6 max-w-2xl w-full">
         <div className="flex items-center justify-between mb-4">
           <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
             <HiOutlineTrash className="w-5 h-5 text-red-600" />

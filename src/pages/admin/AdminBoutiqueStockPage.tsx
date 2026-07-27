@@ -97,7 +97,7 @@ function ItemFormModal({ item, onClose, onSuccess }: ItemFormProps) {
 
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="!p-6 max-w-lg w-full my-8">
+      <Card className="!p-6 max-w-2xl w-full my-8">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-xl font-bold text-secondary-100">{isEdit ? "Edit Item" : "Add Boutique Stock Item"}</h3>
           <button onClick={onClose} className="text-custom-700 hover:text-secondary-100"><HiOutlineX className="w-6 h-6" /></button>
@@ -173,7 +173,7 @@ function DeleteModal({ item, onClose, onSuccess }: { item: BoutiqueStockItem; on
 
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
-      <Card className="!p-6 max-w-sm w-full">
+      <Card className="!p-6 max-w-xl w-full">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
             <HiOutlineTrash className="w-5 h-5 text-red-500" />
@@ -220,7 +220,7 @@ function RestockModal({ item, onClose, onSuccess }: { item: BoutiqueStockItem; o
 
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="!p-6 max-w-sm w-full my-8">
+      <Card className="!p-6 max-w-xl w-full my-8">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-xl font-bold text-secondary-100">Restock: {item.itemName}</h3>
           <button onClick={onClose} className="text-custom-700 hover:text-secondary-100"><HiOutlineX className="w-6 h-6" /></button>
@@ -433,7 +433,7 @@ function RejectModal({ sortie, onClose, onSuccess }: {
 
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
-      <Card className="!p-6 max-w-sm w-full">
+      <Card className="!p-6 max-w-xl w-full">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
             <HiOutlineBan className="w-5 h-5 text-red-500" />
@@ -650,7 +650,7 @@ function SortiesTab() {
       {/* Approve confirm */}
       {approveTarget && (
         <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
-          <Card className="!p-6 max-w-sm w-full">
+          <Card className="!p-6 max-w-xl w-full">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
                 <HiOutlineCheck className="w-5 h-5 text-emerald-600" />

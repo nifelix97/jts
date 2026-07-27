@@ -892,7 +892,7 @@ export default function ProdurementPage() {
       {/* Delete Confirm */}
       {deleteId && (
         <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
-          <Card className="!p-6 max-w-sm w-full">
+          <Card className="!p-6 max-w-xl w-full">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
                 <HiOutlineTrash className="w-5 h-5 text-red-600" />

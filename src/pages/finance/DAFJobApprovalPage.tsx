@@ -730,7 +730,7 @@ export default function DAFJobApprovalPage() {
         {/* Action Modal */}
         {showModal && selectedJob && (
           <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
-            <Card className="!p-6 max-w-lg w-full">
+            <Card className="!p-6 max-w-2xl w-full">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-secondary-100 capitalize">

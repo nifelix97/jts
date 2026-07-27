@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { RootState } from "../index";
 
-export type PayrollStatus = "draft" | "approved" | "paid";
+export type PayrollStatus = "draft" | "approved" | "paid" | "rejected";
 export type WorkerType = "employee" | "casual";
 
 export interface Payroll {
@@ -18,6 +18,7 @@ export interface Payroll {
   deductions: number;
   netSalary: number;
   status: PayrollStatus;
+  rejectionComment?: string;
   notes?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -105,6 +106,12 @@ export const payrollApi = createApi({
       invalidatesTags: ["Payroll"],
     }),
 
+    rejectPayroll: builder.mutation<Payroll, { id: string; rejectionComment: string }>({
+      query: ({ id, rejectionComment }) => ({ url: `/payrolls/${id}/reject`, method: "PATCH", body: { rejectionComment } }),
+      transformResponse: (res: any) => res?.data ?? res,
+      invalidatesTags: ["Payroll"],
+    }),
+
     deletePayroll: builder.mutation<void, string>({
       query: (id) => ({ url: `/payrolls/${id}`, method: "DELETE" }),
       invalidatesTags: ["Payroll"],
@@ -119,5 +126,6 @@ export const {
   useUpdatePayrollMutation,
   useApprovePayrollMutation,
   useMarkPayrollPaidMutation,
+  useRejectPayrollMutation,
   useDeletePayrollMutation,
 } = payrollApi;

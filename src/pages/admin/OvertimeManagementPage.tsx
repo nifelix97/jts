@@ -11,6 +11,9 @@ import {
   HiOutlineCalendar,
   HiOutlineFilter,
   HiOutlineUserCircle,
+  HiOutlinePlus,
+  HiOutlinePencil,
+  HiOutlineTrash,
 } from "react-icons/hi";
 import { toast } from "react-toastify";
 import { DashboardLayout } from "../../components";
@@ -18,9 +21,13 @@ import { Card } from "../../components/ui";
 import {
   useGetOvertimeRequestsQuery,
   useApproveOvertimeRequestMutation,
+  useCreateOvertimeRequestMutation,
+  useUpdateOvertimeRequestMutation,
+  useDeleteOvertimeRequestMutation,
   type OvertimeRequest,
   type OvertimeStatus,
 } from "../../store/services/overtimeService";
+import { useGetAllEmployeesQuery } from "../../store/services/employeesService";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -186,6 +193,214 @@ function FiltersBar({
   );
 }
 
+// ─── OvertimeForm Modal (Create / Edit) ──────────────────────────────────────
+
+function OvertimeFormModal({
+  record,
+  onClose,
+}: {
+  record?: OvertimeRequest;
+  onClose: () => void;
+}) {
+  const isEdit = !!record;
+  const [form, setForm] = useState({
+    date:       record?.date       ?? "",
+    startTime:  record?.startTime  ?? "",
+    endTime:    record?.endTime    ?? "",
+    reason:     record?.reason     ?? "",
+    employeeId: record?.employeeId ?? record?.employee?.id ?? "",
+  });
+
+  const { data: empData } = useGetAllEmployeesQuery({ limit: 500 });
+  const employees = empData?.data ?? [];
+
+  const [create, { isLoading: creating }] = useCreateOvertimeRequestMutation();
+  const [update, { isLoading: updating }] = useUpdateOvertimeRequestMutation();
+  const isLoading = creating || updating;
+
+  const set = (key: string) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+      setForm(prev => ({ ...prev, [key]: e.target.value }));
+
+  const duration = calcHours(form.startTime, form.endTime);
+  const selectedEmp = employees.find(e => e.id === form.employeeId);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (isEdit) {
+        await update({ id: record!.id, ...form }).unwrap();
+        toast.success("Overtime updated");
+      } else {
+        await create(form).unwrap();
+        toast.success("Overtime recorded");
+      }
+      onClose();
+    } catch (err: any) {
+      toast.error(err?.data?.message ?? "Failed to save");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-style-600 border border-custom-200 rounded-2xl shadow-2xl w-full max-w-2xl my-4 overflow-hidden">
+
+        {/* ── Colored header banner ── */}
+        <div className={`px-6 py-4 bg-gradient-to-r from-primary-600 to-primary-500`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                <HiOutlineClock className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-white">
+                  {isEdit ? "Edit Overtime Record" : "Record New Overtime"}
+                </h2>
+                <p className="text-xs text-white/70 mt-0.5">
+                  {isEdit
+                    ? `Editing record for ${employeeName(record!)}`
+                    : "Fill in the details to log overtime work"}
+                </p>
+              </div>
+            </div>
+            <button onClick={onClose}
+              className="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors">
+              <HiOutlineX className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="px-6 py-4 space-y-3">
+
+            {/* ── Employee ── */}
+            <div>
+              <label className="block text-xs font-semibold text-custom-700 mb-1">Employee *</label>
+              <div className="relative">
+                <HiOutlineUserCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-custom-400 pointer-events-none" />
+                <select value={form.employeeId} onChange={set("employeeId")} required
+                  className="w-full pl-9 pr-4 py-2 rounded-xl border border-custom-300 bg-style-500 text-secondary-100 text-sm focus:outline-none focus:border-primary-400 transition-colors appearance-none">
+                  <option value="">Select employee…</option>
+                  {employees.map(emp => (
+                    <option key={emp.id} value={emp.id}>{emp.fullName}</option>
+                  ))}
+                </select>
+              </div>
+              {selectedEmp && (
+                <div className="mt-1.5 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary-50 border border-primary-100">
+                  <div className="w-6 h-6 rounded-full bg-primary-200 flex items-center justify-center text-primary-700 text-xs font-bold shrink-0">
+                    {selectedEmp.fullName[0].toUpperCase()}
+                  </div>
+                  <p className="text-xs font-semibold text-primary-700">{selectedEmp.fullName}</p>
+                  {selectedEmp.email && <p className="text-xs text-primary-400 ml-auto">{selectedEmp.email}</p>}
+                </div>
+              )}
+            </div>
+
+            {/* ── Date + Time in one row ── */}
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-custom-700 mb-1">Date *</label>
+                <div className="relative">
+                  <HiOutlineCalendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-custom-400 pointer-events-none" />
+                  <input type="date" value={form.date} onChange={set("date")} required
+                    className="w-full pl-9 pr-2 py-2 rounded-xl border border-custom-300 bg-style-500 text-secondary-100 text-sm focus:outline-none focus:border-primary-400 transition-colors" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-custom-700 mb-1">Start Time *</label>
+                <div className="relative">
+                  <HiOutlineClock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-custom-400 pointer-events-none" />
+                  <input type="time" value={form.startTime} onChange={set("startTime")} required
+                    className="w-full pl-9 pr-2 py-2 rounded-xl border border-custom-300 bg-style-500 text-secondary-100 text-sm focus:outline-none focus:border-primary-400 transition-colors" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-custom-700 mb-1">End Time *</label>
+                <div className="relative">
+                  <HiOutlineClock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-custom-400 pointer-events-none" />
+                  <input type="time" value={form.endTime} onChange={set("endTime")} required
+                    className="w-full pl-9 pr-2 py-2 rounded-xl border border-custom-300 bg-style-500 text-secondary-100 text-sm focus:outline-none focus:border-primary-400 transition-colors" />
+                </div>
+              </div>
+            </div>
+
+            {/* Live duration pill */}
+            {form.startTime && form.endTime && (
+              <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold ${
+                duration === "—" ? "bg-red-50 text-red-600 border border-red-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+              }`}>
+                <HiOutlineClock className="w-3.5 h-3.5" />
+                {duration === "—" ? "End time must be after start time" : `Duration: ${duration}`}
+              </div>
+            )}
+
+            {/* ── Reason ── */}
+            <div>
+              <label className="block text-xs font-semibold text-custom-700 mb-1">
+                Reason <span className="font-normal text-custom-400">(optional)</span>
+              </label>
+              <textarea value={form.reason} onChange={set("reason")} rows={2}
+                placeholder="Describe the reason for this overtime work…"
+                className="w-full px-3 py-2 rounded-xl border border-custom-300 bg-style-500 text-secondary-100 text-sm focus:outline-none focus:border-primary-400 transition-colors resize-none" />
+            </div>
+          </div>
+
+          {/* ── Footer ── */}
+          <div className="px-6 py-3 bg-custom-50 border-t border-custom-200 flex items-center justify-between gap-3">
+            <p className="text-xs text-custom-500">Fields marked * are required</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={onClose} disabled={isLoading}
+                className="px-5 py-2.5 rounded-xl border border-custom-300 text-sm font-semibold text-secondary-100 hover:bg-custom-100 disabled:opacity-40 transition-colors">
+                Cancel
+              </button>
+              <button type="submit" disabled={isLoading}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-40 transition-colors bg-primary-500 hover:bg-primary-600`}>
+                {isEdit ? <HiOutlinePencil className="w-4 h-4" /> : <HiOutlinePlus className="w-4 h-4" />}
+                {isLoading ? "Saving…" : isEdit ? "Save Changes" : "Record Overtime"}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── Delete Confirm Modal ─────────────────────────────────────────────────────
+
+function DeleteConfirmModal({
+  record,
+  onClose,
+}: {
+  record: OvertimeRequest;
+  onClose: () => void;
+}) {
+  const [deleteOT, { isLoading }] = useDeleteOvertimeRequestMutation();
+  return (
+    <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-style-600 border border-custom-200 rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base font-bold text-secondary-100">Delete Overtime</h3>
+          <button onClick={onClose} className="text-custom-700 hover:text-secondary-100"><HiOutlineX className="w-5 h-5" /></button>
+        </div>
+        <p className="text-sm text-custom-700 mb-5">
+          Delete overtime for <strong className="text-secondary-100">{employeeName(record)}</strong> on <strong className="text-secondary-100">{fmtDate(record.date)}</strong>? This cannot be undone.
+        </p>
+        <div className="flex gap-3 justify-end">
+          <button onClick={onClose} disabled={isLoading}
+            className="px-4 py-2 rounded-xl border border-custom-300 text-sm font-semibold text-secondary-100 hover:bg-custom-100 disabled:opacity-40 transition-colors">Cancel</button>
+          <button onClick={async () => { try { await deleteOT(record.id).unwrap(); toast.success("Deleted"); onClose(); } catch { toast.error("Failed to delete"); } }}
+            disabled={isLoading}
+            className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 disabled:opacity-40 transition-colors">
+            {isLoading ? "Deleting…" : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Approval Modal ───────────────────────────────────────────────────────────
 
 function ApprovalModal({
@@ -313,15 +528,19 @@ function DetailModal({
   record,
   onClose,
   onApprove,
+  onEdit,
+  onDelete,
 }: {
   record: OvertimeRequest;
   onClose: () => void;
   onApprove: (decision: "APPROVED" | "REJECTED") => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   const isPending = record.status === "PENDING";
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="!p-6 max-w-lg w-full my-8">
+      <Card className="!p-6 max-w-2xl w-full my-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
@@ -413,29 +632,33 @@ function DetailModal({
         </dl>
 
         {/* Footer actions */}
-        <div className="flex gap-3 justify-end pt-4 mt-4 border-t border-custom-200">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-custom-300 text-sm font-semibold text-secondary-100 hover:bg-custom-100 transition-colors"
-          >
+        <div className="flex flex-wrap gap-2 justify-end pt-4 mt-4 border-t border-custom-200">
+          <button onClick={onClose}
+            className="px-4 py-2 rounded-xl border border-custom-300 text-sm font-semibold text-secondary-100 hover:bg-custom-100 transition-colors">
             Close
           </button>
+          {record.status === "PENDING" && (
+            <button onClick={() => { onClose(); onEdit(); }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-custom-300 text-sm font-semibold text-secondary-100 hover:bg-custom-100 transition-colors">
+              <HiOutlinePencil className="w-4 h-4" /> Edit
+            </button>
+          )}
           {isPending && (
             <>
-              <button
-                onClick={() => { onClose(); onApprove("REJECTED"); }}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors"
-              >
+              <button onClick={() => { onClose(); onApprove("REJECTED"); }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors">
                 <HiOutlineXCircle className="w-4 h-4" /> Reject
               </button>
-              <button
-                onClick={() => { onClose(); onApprove("APPROVED"); }}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors"
-              >
+              <button onClick={() => { onClose(); onApprove("APPROVED"); }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
                 <HiOutlineCheckCircle className="w-4 h-4" /> Approve
               </button>
             </>
           )}
+          <button onClick={() => { onClose(); onDelete(); }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors">
+            <HiOutlineTrash className="w-4 h-4" /> Delete
+          </button>
         </div>
       </Card>
     </div>
@@ -449,9 +672,11 @@ interface ListProps {
   loading: boolean;
   onView: (r: OvertimeRequest) => void;
   onApprove: (r: OvertimeRequest, decision: "APPROVED" | "REJECTED") => void;
+  onEdit: (r: OvertimeRequest) => void;
+  onDelete: (r: OvertimeRequest) => void;
 }
 
-function OvertimeList({ records, loading, onView, onApprove }: ListProps) {
+function OvertimeList({ records, loading, onView, onApprove, onEdit, onDelete }: ListProps) {
   if (loading) {
     return (
       <div className="space-y-3">
@@ -538,35 +763,33 @@ function OvertimeList({ records, loading, onView, onApprove }: ListProps) {
             </div>
 
             {/* Action buttons */}
-            <div
-              className="flex items-center gap-1.5 shrink-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => onView(r)}
-                title="View"
-                className="p-1.5 rounded-lg hover:bg-custom-100 text-custom-700 transition-colors"
-              >
+            <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => onView(r)} title="View"
+                className="p-1.5 rounded-lg hover:bg-custom-100 text-custom-700 transition-colors">
                 <HiOutlineEye className="w-4 h-4" />
               </button>
               {r.status === "PENDING" && (
+                <button onClick={() => onEdit(r)} title="Edit"
+                  className="p-1.5 rounded-lg hover:bg-custom-100 text-custom-700 transition-colors">
+                  <HiOutlinePencil className="w-4 h-4" />
+                </button>
+              )}
+              {r.status === "PENDING" && (
                 <>
-                  <button
-                    onClick={() => onApprove(r, "APPROVED")}
-                    title="Approve"
-                    className="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors"
-                  >
+                  <button onClick={() => onApprove(r, "APPROVED")} title="Approve"
+                    className="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors">
                     <HiOutlineCheckCircle className="w-4 h-4" />
                   </button>
-                  <button
-                    onClick={() => onApprove(r, "REJECTED")}
-                    title="Reject"
-                    className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"
-                  >
+                  <button onClick={() => onApprove(r, "REJECTED")} title="Reject"
+                    className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors">
                     <HiOutlineXCircle className="w-4 h-4" />
                   </button>
                 </>
               )}
+              <button onClick={() => onDelete(r)} title="Delete"
+                className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors">
+                <HiOutlineTrash className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </Card>
@@ -582,6 +805,9 @@ export default function OvertimeManagementPage() {
   const [statusFilter, setStatusFilter] = useState<OvertimeStatus | "">("");
   const [dateFilter,   setDateFilter]   = useState("");
   const [viewRecord,   setViewRecord]   = useState<OvertimeRequest | null>(null);
+  const [editRecord,   setEditRecord]   = useState<OvertimeRequest | null>(null);
+  const [deleteRecord, setDeleteRecord] = useState<OvertimeRequest | null>(null);
+  const [showCreate,   setShowCreate]   = useState(false);
   const [approvalTarget, setApprovalTarget] = useState<{
     record: OvertimeRequest;
     decision: "APPROVED" | "REJECTED";
@@ -635,6 +861,10 @@ export default function OvertimeManagementPage() {
               </p>
             </div>
           </div>
+          <button onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors">
+            <HiOutlinePlus className="w-4 h-4" /> Record Overtime
+          </button>
         </div>
 
         {/* ── KPI Cards ── */}
@@ -665,10 +895,15 @@ export default function OvertimeManagementPage() {
           loading={isLoading}
           onView={setViewRecord}
           onApprove={(r, decision) => setApprovalTarget({ record: r, decision })}
+          onEdit={setEditRecord}
+          onDelete={setDeleteRecord}
         />
       </div>
 
       {/* ── Modals ── */}
+      {showCreate && <OvertimeFormModal onClose={() => setShowCreate(false)} />}
+      {editRecord  && <OvertimeFormModal record={editRecord} onClose={() => setEditRecord(null)} />}
+      {deleteRecord && <DeleteConfirmModal record={deleteRecord} onClose={() => setDeleteRecord(null)} />}
       {viewRecord && (
         <DetailModal
           record={viewRecord}
@@ -677,6 +912,8 @@ export default function OvertimeManagementPage() {
             setViewRecord(null);
             setApprovalTarget({ record: viewRecord, decision });
           }}
+          onEdit={() => { setViewRecord(null); setEditRecord(viewRecord); }}
+          onDelete={() => { setViewRecord(null); setDeleteRecord(viewRecord); }}
         />
       )}
       {approvalTarget && (

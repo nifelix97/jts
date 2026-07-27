@@ -104,7 +104,7 @@ function ReviewModal({
 
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="!p-6 max-w-md w-full my-8">
+      <Card className="!p-6 max-w-2xl w-full my-8">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-secondary-100">
             {action === "approve" ? "Approve Leave" : "Reject Leave"}
@@ -195,7 +195,7 @@ function LeaveDetailModal({
 }) {
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="!p-6 max-w-md w-full my-8">
+      <Card className="!p-6 max-w-2xl w-full my-8">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-xl font-bold text-secondary-100">Leave Request Details</h3>
           <button onClick={onClose} className="text-custom-700 hover:text-secondary-100">

@@ -563,7 +563,7 @@ export default function JobManagementPage() {
         {/* ── Filter Modal ─────────────────────────────────────────────────── */}
         {showFilterModal && (
           <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
-            <Card className="!p-6 max-w-md w-full">
+            <Card className="!p-6 max-w-2xl w-full">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-secondary-100">Filter Jobs</h3>
                 <button onClick={() => setShowFilterModal(false)} className="text-custom-700 hover:text-secondary-100">
@@ -650,7 +650,7 @@ export default function JobManagementPage() {
         {/* ── Approve / Reject / Verify Modal ──────────────────────────────── */}
         {approvalJob && (
           <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full">
+            <div className="bg-white rounded-2xl shadow-xl p-6 max-w-2xl w-full">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-base font-bold text-secondary-100 capitalize">
                   {approvalMode === "approve" ? "Confirm Job" : approvalMode === "reject" ? "Reject Job" : approvalMode === "assign" ? (approvalJob?.departmentAssignedToId ? "Reassign Department" : "Assign to Department") : approvalMode === "complete" ? "Complete Job" : "Verify Job"}
@@ -776,7 +776,7 @@ export default function JobManagementPage() {
         {/* ── Delete Confirm Modal ─────────────────────────────────────────── */}
         {deleteJobId && (
           <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
+            <div className="bg-white rounded-2xl shadow-xl p-6 max-w-xl w-full">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
                   <HiOutlineTrash className="w-5 h-5 text-red-600" />

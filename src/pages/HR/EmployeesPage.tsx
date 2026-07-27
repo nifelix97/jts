@@ -44,7 +44,7 @@ function ViewEmployeeModal({ employee: emp, onClose }: { employee: any; onClose:
   ];
   return (
     <div className="fixed inset-0 bg-secondary-100/60 z-50 flex items-center justify-center p-4">
-      <Card className="!p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <Card className="!p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
@@ -241,7 +241,7 @@ function AssignDepartmentModal({ employee, onClose }: { employee: any; onClose: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl">
         <div className="flex items-center justify-between px-6 py-4 border-b border-custom-200">
           <div>
             <h2 className="text-lg font-bold text-secondary-100">Assign Department</h2>
@@ -517,7 +517,7 @@ function DeleteEmployeeModal({ employee, onClose }: { employee: any; onClose: ()
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl">
         <div className="px-6 py-4 border-b border-custom-200">
           <h2 className="text-lg font-bold text-secondary-100">Delete Employee</h2>
         </div>

@@ -253,7 +253,7 @@ function PaymentModal({ job, receivedById, onClose, onSuccess }: PaymentModalPro
   if (receipt) {
     return (
       <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-        <Card className="!p-8 max-w-md w-full my-8 text-center">
+        <Card className="!p-8 max-w-2xl w-full my-8 text-center">
           <div className="flex flex-col items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
               <HiOutlineBadgeCheck className="w-9 h-9 text-emerald-600" />
@@ -312,7 +312,7 @@ function PaymentModal({ job, receivedById, onClose, onSuccess }: PaymentModalPro
   // ── Payment form ─────────────────────────────────────────────────────────
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="!p-6 max-w-lg w-full my-8">
+      <Card className="!p-6 max-w-2xl w-full my-8">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
@@ -495,7 +495,7 @@ function PaymentModal({ job, receivedById, onClose, onSuccess }: PaymentModalPro
 
 //   return (
 //     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-//       <Card className="!p-6 max-w-md w-full my-8">
+//       <Card className="!p-6 max-w-2xl w-full my-8">
 //         {/* Header */}
 //         <div className="flex items-center justify-between mb-5">
 //           <div>

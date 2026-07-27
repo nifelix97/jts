@@ -88,7 +88,7 @@ function ItemFormModal({ item, onClose, onSuccess }: ItemFormProps) {
 
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="!p-6 max-w-lg w-full my-8">
+      <Card className="!p-6 max-w-2xl w-full my-8">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-xl font-bold text-secondary-100">{isEdit ? "Edit Item" : "Add General Stock Item"}</h3>
           <button onClick={onClose} className="text-custom-700 hover:text-secondary-100"><HiOutlineX className="w-6 h-6" /></button>
@@ -163,7 +163,7 @@ function RestockModal({ item, onClose, onSuccess }: { item: GeneralStockItem; on
 
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <Card className="!p-6 max-w-sm w-full my-8">
+      <Card className="!p-6 max-w-xl w-full my-8">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-xl font-bold text-secondary-100">Restock: {item.itemName}</h3>
           <button onClick={onClose} className="text-custom-700 hover:text-secondary-100"><HiOutlineX className="w-6 h-6" /></button>

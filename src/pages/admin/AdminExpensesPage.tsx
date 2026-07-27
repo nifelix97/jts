@@ -4,7 +4,7 @@ import {
   HiOutlineClipboardList, HiOutlineShoppingCart, HiOutlineCog,
   HiOutlineLightBulb, HiOutlineOfficeBuilding, HiOutlineClock,
   HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineX,
-  HiOutlinePencil, HiOutlineTrash, HiOutlineThumbUp, HiOutlineBan,
+  HiOutlinePencil, HiOutlineTrash, HiOutlineThumbUp, HiOutlineBan, HiOutlineEye,
 } from "react-icons/hi";
 import { toast } from "react-toastify";
 import DashboardLayout from "../../components/DashboardLayout";
@@ -193,84 +193,112 @@ function EditModal({ record, onClose }: { record: Outstand; onClose: () => void 
 function DetailModal({ record, onClose, onEdit }: { record: Outstand; onClose: () => void; onEdit: () => void }) {
   const cat = categoryConfig[record.category] ?? categoryConfig.other;
   const st  = statusConfig[record.status];
-  const [approvingConfirm, setApprovingConfirm] = useState(false);
-  const [payingConfirm, setPayingConfirm]       = useState(false);
-  const [deleteConfirm, setDeleteConfirm]       = useState(false);
-  const [showReject, setShowReject]             = useState(false);
+  const [action, setAction] = useState<"approve" | "pay" | "delete" | "reject" | null>(null);
   const [approveOutstand, { isLoading: approving }] = useApproveOutstandMutation();
   const [payOutstand,     { isLoading: paying }]    = usePayOutstandMutation();
   const [deleteOutstand,  { isLoading: deleting }]  = useDeleteOutstandMutation();
-  if (showReject) return <RejectModal record={record} onClose={() => { setShowReject(false); onClose(); }} />;
+  return (
+    <>
+      {action === "reject" && (
+        <RejectModal record={record} onClose={() => { setAction(null); onClose(); }} />
+      )}
+      {action === "approve" && (
+        <ConfirmModal
+          title="Approve Expense"
+          message={<>Approve <strong>{record.ref}</strong> — <strong>{Number(record.totalAmount).toLocaleString()} RWF</strong>?</>}
+          confirmLabel="Approve" confirmCls="bg-emerald-500 hover:bg-emerald-600" loading={approving}
+          onConfirm={async () => { try { await approveOutstand(record.id).unwrap(); toast.success("Approved"); onClose(); } catch { toast.error("Failed"); } setAction(null); }}
+          onClose={() => setAction(null)}
+        />
+      )}
+      {action === "pay" && (
+        <ConfirmModal
+          title="Mark as Paid"
+          message={<>Mark <strong>{record.ref}</strong> as paid?</>}
+          confirmLabel="Yes, Mark Paid" confirmCls="bg-blue-500 hover:bg-blue-600" loading={paying}
+          onConfirm={async () => { try { await payOutstand(record.id).unwrap(); toast.success("Marked as paid"); onClose(); } catch { toast.error("Failed"); } setAction(null); }}
+          onClose={() => setAction(null)}
+        />
+      )}
+      {action === "delete" && (
+        <ConfirmModal
+          title="Delete Expense"
+          message={<>Permanently delete <strong>{record.ref}</strong>? This cannot be undone.</>}
+          confirmLabel="Delete" confirmCls="bg-red-500 hover:bg-red-600" loading={deleting}
+          onConfirm={async () => { try { await deleteOutstand(record.id).unwrap(); toast.success("Deleted"); onClose(); } catch { toast.error("Failed to delete"); } setAction(null); }}
+          onClose={() => setAction(null)}
+        />
+      )}
+      <div className="fixed inset-0 bg-secondary-100/50 z-40 flex items-center justify-center p-4">
+        <Card className="!p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between mb-5">
+            <div><h3 className="text-lg font-bold text-secondary-100">{record.ref}</h3><p className="text-sm text-custom-700 mt-0.5">{record.description}</p></div>
+            <button onClick={onClose} className="text-custom-700 hover:text-secondary-100"><HiOutlineX className="w-5 h-5" /></button>
+          </div>
+          <div className="flex gap-2 mb-4">
+            <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${cat.color}`}>{cat.icon}{cat.label}</span>
+            <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${st.color}`}>{st.icon}{st.label}</span>
+          </div>
+          <div className="rounded-xl bg-custom-50 border border-custom-200 divide-y divide-custom-200 mb-4">
+            {([
+              ["Recipient", record.recipientName], ["Phone", record.recipientPhone], ["Role", record.recipientRole],
+              ["Amount", `${Number(record.totalAmount).toLocaleString()} RWF`],
+              ["Recorded by", record.recordedBy?.name ?? "—"],
+              ["Date", new Date(record.createdAt).toLocaleString("en-RW", { dateStyle: "medium", timeStyle: "short" })],
+              ...(record.approvedBy ? [["Approved by", record.approvedBy.name]] : []),
+              ...(record.paidAt ? [["Paid at", new Date(record.paidAt).toLocaleDateString()]] : []),
+            ] as [string, string][]).map(([label, value]) => (
+              <div key={label} className="flex justify-between px-4 py-2.5 text-sm">
+                <span className="text-custom-700">{label}</span>
+                <span className="font-semibold text-secondary-100 text-right max-w-[60%]">{value}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mb-4"><p className="text-xs font-semibold text-custom-700 mb-1 uppercase tracking-wide">Purpose</p><p className="text-sm text-secondary-100">{record.purpose}</p></div>
+          {record.notes && <div className="px-4 py-3 rounded-xl bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm mb-4">{record.notes}</div>}
+          {record.rejectionNote && <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm mb-4">Rejected: {record.rejectionNote}</div>}
+          <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-custom-200">
+            {record.status === "pending" && (
+              <button onClick={onEdit} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-custom-300 text-sm font-semibold text-secondary-100 hover:bg-custom-100 transition-colors"><HiOutlinePencil className="w-4 h-4" /> Edit</button>
+            )}
+            {record.status === "pending" && (
+              <button onClick={() => setAction("approve")} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors"><HiOutlineThumbUp className="w-4 h-4" /> Approve</button>
+            )}
+            {record.status === "pending" && (
+              <button onClick={() => setAction("reject")} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors"><HiOutlineBan className="w-4 h-4" /> Reject</button>
+            )}
+            {record.status === "approved" && (
+              <button onClick={() => setAction("pay")} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition-colors"><HiOutlineCash className="w-4 h-4" /> Mark as Paid</button>
+            )}
+            {record.status !== "paid" && (
+              <button onClick={() => setAction("delete")} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors"><HiOutlineTrash className="w-4 h-4" /> Delete</button>
+            )}
+            <button onClick={onClose} className="ml-auto px-4 py-2 rounded-xl border border-custom-300 text-sm font-semibold text-secondary-100 hover:bg-custom-100 transition-colors">Close</button>
+          </div>
+        </Card>
+      </div>
+    </>
+  );
+}
+
+// ─── Confirm Modal ────────────────────────────────────────────────────────────
+function ConfirmModal({ title, message, confirmLabel, confirmCls, onConfirm, onClose, loading }: {
+  title: string; message: React.ReactNode; confirmLabel: string; confirmCls: string;
+  onConfirm: () => void; onClose: () => void; loading?: boolean;
+}) {
   return (
     <div className="fixed inset-0 bg-secondary-100/50 z-50 flex items-center justify-center p-4">
-      <Card className="!p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-5">
-          <div><h3 className="text-lg font-bold text-secondary-100">{record.ref}</h3><p className="text-sm text-custom-700 mt-0.5">{record.description}</p></div>
+      <Card className="!p-6 max-w-sm w-full">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base font-bold text-secondary-100">{title}</h3>
           <button onClick={onClose} className="text-custom-700 hover:text-secondary-100"><HiOutlineX className="w-5 h-5" /></button>
         </div>
-        <div className="flex gap-2 mb-4">
-          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${cat.color}`}>{cat.icon}{cat.label}</span>
-          <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${st.color}`}>{st.icon}{st.label}</span>
-        </div>
-        <div className="rounded-xl bg-custom-50 border border-custom-200 divide-y divide-custom-200 mb-4">
-          {([
-            ["Recipient", record.recipientName], ["Phone", record.recipientPhone], ["Role", record.recipientRole],
-            ["Amount", `${Number(record.totalAmount).toLocaleString()} RWF`],
-            ["Recorded by", record.recordedBy?.name ?? "—"],
-            ["Date", new Date(record.createdAt).toLocaleString("en-RW", { dateStyle: "medium", timeStyle: "short" })],
-            ...(record.approvedBy ? [["Approved by", record.approvedBy.name]] : []),
-            ...(record.paidAt ? [["Paid at", new Date(record.paidAt).toLocaleDateString()]] : []),
-          ] as [string, string][]).map(([label, value]) => (
-            <div key={label} className="flex justify-between px-4 py-2.5 text-sm">
-              <span className="text-custom-700">{label}</span>
-              <span className="font-semibold text-secondary-100 text-right max-w-[60%]">{value}</span>
-            </div>
-          ))}
-        </div>
-        <div className="mb-4"><p className="text-xs font-semibold text-custom-700 mb-1 uppercase tracking-wide">Purpose</p><p className="text-sm text-secondary-100">{record.purpose}</p></div>
-        {record.notes && <div className="px-4 py-3 rounded-xl bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm mb-4">{record.notes}</div>}
-        {record.rejectionNote && <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm mb-4">Rejected: {record.rejectionNote}</div>}
-        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-custom-200">
-          {record.status === "pending" && (
-            <button onClick={onEdit} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-custom-300 text-sm font-semibold text-secondary-100 hover:bg-custom-100 transition-colors"><HiOutlinePencil className="w-4 h-4" /> Edit</button>
-          )}
-          {record.status === "pending" && (
-            approvingConfirm ? (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-300">
-                <span className="text-sm text-emerald-700 font-semibold">Approve this?</span>
-                <button onClick={async () => { try { await approveOutstand(record.id).unwrap(); toast.success("Approved"); onClose(); } catch { toast.error("Failed"); } setApprovingConfirm(false); }} disabled={approving} className="px-3 py-1 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 disabled:opacity-40">Yes</button>
-                <button onClick={() => setApprovingConfirm(false)} className="px-3 py-1 rounded-lg border border-custom-300 text-xs font-semibold text-custom-700 hover:bg-custom-100">No</button>
-              </div>
-            ) : (
-              <button onClick={() => setApprovingConfirm(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors"><HiOutlineThumbUp className="w-4 h-4" /> Approve</button>
-            )
-          )}
-          {record.status === "pending" && (
-            <button onClick={() => setShowReject(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors"><HiOutlineBan className="w-4 h-4" /> Reject</button>
-          )}
-          {record.status === "approved" && (
-            payingConfirm ? (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-300">
-                <span className="text-sm text-blue-700 font-semibold">Mark as Paid?</span>
-                <button onClick={async () => { try { await payOutstand(record.id).unwrap(); toast.success("Marked as paid"); onClose(); } catch { toast.error("Failed"); } setPayingConfirm(false); }} disabled={paying} className="px-3 py-1 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 disabled:opacity-40">Yes, Pay</button>
-                <button onClick={() => setPayingConfirm(false)} className="px-3 py-1 rounded-lg border border-custom-300 text-xs font-semibold text-custom-700 hover:bg-custom-100">Cancel</button>
-              </div>
-            ) : (
-              <button onClick={() => setPayingConfirm(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition-colors"><HiOutlineCash className="w-4 h-4" /> Mark as Paid</button>
-            )
-          )}
-          {record.status !== "paid" && (
-            deleteConfirm ? (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 border border-red-300">
-                <span className="text-sm text-red-700 font-semibold">Delete this?</span>
-                <button onClick={async () => { try { await deleteOutstand(record.id).unwrap(); toast.success("Deleted"); onClose(); } catch { toast.error("Failed to delete"); } setDeleteConfirm(false); }} disabled={deleting} className="px-3 py-1 rounded-lg bg-red-500 text-white text-xs font-bold hover:bg-red-600 disabled:opacity-40">Yes</button>
-                <button onClick={() => setDeleteConfirm(false)} className="px-3 py-1 rounded-lg border border-custom-300 text-xs font-semibold text-custom-700 hover:bg-custom-100">No</button>
-              </div>
-            ) : (
-              <button onClick={() => setDeleteConfirm(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors"><HiOutlineTrash className="w-4 h-4" /> Delete</button>
-            )
-          )}
-          <button onClick={onClose} className="ml-auto px-4 py-2 rounded-xl border border-custom-300 text-sm font-semibold text-secondary-100 hover:bg-custom-100 transition-colors">Close</button>
+        <p className="text-sm text-custom-700 mb-5">{message}</p>
+        <div className="flex gap-3 justify-end">
+          <button onClick={onClose} className="px-4 py-2 rounded-xl border border-custom-300 text-sm font-semibold text-secondary-100 hover:bg-custom-100 transition-colors">Cancel</button>
+          <button onClick={onConfirm} disabled={loading} className={`px-4 py-2 rounded-xl text-white text-sm font-semibold transition-colors disabled:opacity-40 ${confirmCls}`}>
+            {loading ? "Please wait…" : confirmLabel}
+          </button>
         </div>
       </Card>
     </div>
@@ -278,64 +306,59 @@ function DetailModal({ record, onClose, onEdit }: { record: Outstand; onClose: (
 }
 
 // ─── Inline row actions ───────────────────────────────────────────────────────
-function InlineActions({ record, approveOutstand, payOutstand, deleteOutstand, onEdit }: {
+function InlineActions({ record, approveOutstand, payOutstand, deleteOutstand, onEdit, onView }: {
   record: Outstand;
   approveOutstand: (id: string) => any;
   payOutstand: (id: string) => any;
   deleteOutstand: (id: string) => any;
   onEdit: () => void;
+  onView: () => void;
 }) {
   const [confirm, setConfirm] = useState<"approve" | "pay" | "delete" | null>(null);
   return (
     <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+      <button onClick={onView} title="View"
+        className="p-1.5 rounded-lg hover:bg-primary-50 text-primary-500 transition-colors">
+        <HiOutlineEye className="w-4 h-4" />
+      </button>
       {record.status === "pending" && (
-        <>
-          <button onClick={() => onEdit()} title="Edit"
-            className="p-1.5 rounded-lg hover:bg-custom-100 text-custom-700 hover:text-secondary-100 transition-colors">
-            <HiOutlinePencil className="w-4 h-4" />
-          </button>
-          {confirm === "approve" ? (
-            <span className="flex items-center gap-1 text-xs">
-              <button onClick={async () => { try { await approveOutstand(record.id); toast.success("Approved"); } catch { toast.error("Failed"); } setConfirm(null); }} className="px-2 py-1 rounded-lg bg-emerald-500 text-white font-bold hover:bg-emerald-600">Yes</button>
-              <button onClick={() => setConfirm(null)} className="px-2 py-1 rounded-lg border border-custom-300 text-custom-700 hover:bg-custom-100">No</button>
-            </span>
-          ) : (
-            <button onClick={() => setConfirm("approve")} title="Approve"
-              className="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors">
-              <HiOutlineThumbUp className="w-4 h-4" />
-            </button>
-          )}
-          <button onClick={() => { /* open reject via detail modal */ onEdit(); }} title="Reject"
-            className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors">
-            <HiOutlineBan className="w-4 h-4" />
-          </button>
-        </>
-      )}
-      {record.status === "approved" && (
-        confirm === "pay" ? (
-          <span className="flex items-center gap-1 text-xs">
-            <button onClick={async () => { try { await payOutstand(record.id); toast.success("Marked as paid"); } catch { toast.error("Failed"); } setConfirm(null); }} className="px-2 py-1 rounded-lg bg-blue-500 text-white font-bold hover:bg-blue-600">Pay</button>
-            <button onClick={() => setConfirm(null)} className="px-2 py-1 rounded-lg border border-custom-300 text-custom-700 hover:bg-custom-100">No</button>
-          </span>
-        ) : (
-          <button onClick={() => setConfirm("pay")} title="Mark as Paid"
-            className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 transition-colors">
-            <HiOutlineCash className="w-4 h-4" />
-          </button>
-        )
+        <button onClick={() => onEdit()} title="Edit"
+          className="p-1.5 rounded-lg hover:bg-custom-100 text-custom-700 hover:text-secondary-100 transition-colors">
+          <HiOutlinePencil className="w-4 h-4" />
+        </button>
       )}
       {record.status !== "paid" && (
-        confirm === "delete" ? (
-          <span className="flex items-center gap-1 text-xs">
-            <button onClick={async () => { try { await deleteOutstand(record.id); toast.success("Deleted"); } catch { toast.error("Failed"); } setConfirm(null); }} className="px-2 py-1 rounded-lg bg-red-500 text-white font-bold hover:bg-red-600">Del</button>
-            <button onClick={() => setConfirm(null)} className="px-2 py-1 rounded-lg border border-custom-300 text-custom-700 hover:bg-custom-100">No</button>
-          </span>
-        ) : (
-          <button onClick={() => setConfirm("delete")} title="Delete"
-            className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors">
-            <HiOutlineTrash className="w-4 h-4" />
-          </button>
-        )
+        <button onClick={() => setConfirm("delete")} title="Delete"
+          className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors">
+          <HiOutlineTrash className="w-4 h-4" />
+        </button>
+      )}
+      {confirm === "approve" && (
+        <ConfirmModal
+          title="Approve Expense"
+          message={<>Approve <strong>{record.ref}</strong> — <strong>{Number(record.totalAmount).toLocaleString()} RWF</strong>?</>}
+          confirmLabel="Approve" confirmCls="bg-emerald-500 hover:bg-emerald-600"
+          onConfirm={async () => { try { await approveOutstand(record.id); toast.success("Approved"); } catch { toast.error("Failed"); } setConfirm(null); }}
+          onClose={() => setConfirm(null)}
+        />
+      )}
+      {confirm === "pay" && (
+        <ConfirmModal
+          title="Mark as Paid"
+          message={<>Mark <strong>{record.ref}</strong> as paid?</>}
+          confirmLabel="Yes, Mark Paid" confirmCls="bg-blue-500 hover:bg-blue-600"
+          onConfirm={async () => { try { await payOutstand(record.id); toast.success("Marked as paid"); } catch { toast.error("Failed"); } setConfirm(null); }}
+          onClose={() => setConfirm(null)}
+        />
+      )}
+      {confirm === "delete" && (
+        <ConfirmModal
+          title="Delete Expense"
+          message={<>Permanently delete <strong>{record.ref}</strong>? This cannot be undone.</>}
+          confirmLabel="Delete" confirmCls="bg-red-500 hover:bg-red-600"
+          onConfirm={async () => { try { await deleteOutstand(record.id); toast.success("Deleted"); } catch { toast.error("Failed to delete"); } setConfirm(null); }}
+          onClose={() => setConfirm(null)}
+        />
       )}
     </div>
   );
@@ -494,6 +517,7 @@ export default function AdminExpensesPage() {
                             payOutstand={(id) => payOutstand(id).unwrap()}
                             deleteOutstand={(id) => deleteOutstand(id).unwrap()}
                             onEdit={() => setEditing(r)}
+                            onView={() => setSelected(r)}
                           />
                         </td>
                       </tr>

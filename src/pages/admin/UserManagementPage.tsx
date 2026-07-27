@@ -550,7 +550,7 @@ export default function UserManagementPage() {
         {/* ── User Detail Modal ─────────────────────────────────────────────── */}
         {viewingUser && (
           <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-            <Card className="!p-0 w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+            <Card className="!p-0 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-custom-200">
                 <h3 className="text-xl font-bold text-secondary-100">User Details</h3>
@@ -886,7 +886,7 @@ export default function UserManagementPage() {
         {/* ── Confirm Modal ─────────────────────────────────────────────── */}
         {confirmModal && (
           <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-            <Card className="!p-6 w-full max-w-sm">
+            <Card className="!p-6 w-full max-w-xl">
               {/* Icon */}
               <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${
                 confirmModal.action === "delete"
