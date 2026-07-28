@@ -52,46 +52,54 @@ const menuItems: Record<UserRole, MenuItem[]> = {
     { label: "Dashboard", path: "/admin", icon: HiOutlineHome },
     { label: "Users", path: "/admin/users", icon: HiOutlineUsers },
     { label: "Customers", path: "/admin/customers", icon: HiOutlineUsers },
-    {label: "Employees", path: "/admin/employees", icon: HiOutlineUsers},
+    { label: "Employees", path: "/admin/employees", icon: HiOutlineUsers },
     { label: "Casual Workers", path: "/admin/abanyabiraka", icon: HiOutlineUsers },
     { label: "Extra Workers", path: "/admin/extra-workers", icon: HiOutlineUsers },
     { label: "Emp Overtime", path: "/admin/overtime", icon: HiOutlineClock },
     { label: "Payroll", path: "/admin/payroll", icon: HiOutlineCurrencyDollar },
-    { label: "Jobs", path: "/admin/jobs", icon: HiOutlineClipboardList},
+    { label: "Jobs", path: "/admin/jobs", icon: HiOutlineClipboardList },
     { label: "Deliveries", path: "/admin/deliveries", icon: HiOutlineArchive },
     { label: "Procurement", path: "/admin/procurement", icon: HiOutlineArchive },
-    { label: "Departments", path: "/admin/departments", icon: HiOutlineUsers},
-    { label: "Production", path: "/admin/production", icon: HiOutlineCube},
+    { label: "Departments", path: "/admin/departments", icon: HiOutlineUsers },
+    { label: "Production", path: "/admin/production", icon: HiOutlineCube },
     { label: "Machines", path: "/admin/machines", icon: HiOutlineCog },
     { label: "Sales", path: "/admin/sales", icon: HiOutlineBriefcase },
     { label: "Proforma Invoice", path: "/admin/proformas", icon: HiOutlineDocumentText },
-    { label: "Finance", path: "/admin/finance", icon: HiOutlineCurrencyDollar},
+    { label: "Finance", path: "/admin/finance", icon: HiOutlineCurrencyDollar },
     { label: "Expenses", path: "/admin/expenses", icon: HiOutlineCash },
     { label: "Withdrawals", path: "/admin/withdrawals", icon: HiOutlineTrendingUp },
     { label: "Recovery", path: "/admin/recovery", icon: HiOutlineCurrencyDollar },
     { label: "Operations", path: "/admin/operations", icon: HiOutlineClipboardList },
     {
       label: "Stock", path: "/admin/stock", icon: HiOutlineArchive, children: [
-        { label: "General Stock",  path: "/admin/stock/general",  icon: HiOutlineArchive },
+        { label: "General Stock", path: "/admin/stock/general", icon: HiOutlineArchive },
         { label: "Boutique Stock", path: "/admin/stock/boutique", icon: HiOutlineArchive },
-        { label: "Binding Stock",  path: "/admin/stock/binding",  icon: HiOutlineArchive },
+        { label: "Binding Stock", path: "/admin/stock/binding", icon: HiOutlineArchive },
       ]
     },
     // { label: "Reports", path: "/admin/reports", icon: HiOutlineChartBar, permissionKey: "reports.view" },
     // { label: "Workflow Config", path: "/admin/workflow", icon: HiOutlineAdjustments, permissionKey: "workflow_config.view" },
-    { label: "Leave Management", path: "/admin/leave", icon: HiOutlineCalendar },
-    { label: "View Reports", path: "/admin/reports/view", icon: HiOutlineDocumentText},
+    {
+      label: "Manage Permissions", path: "/admin/leave", icon: HiOutlineCalendar,
+      children: [
+        {label: "Existing Leave", path: "/admin/leave", icon: HiOutlineCalendar },
+        { label: "Annual Leave", path: "/admin/annual-leave", icon: HiOutlineUsers },
+        { label: "Permissions", path: "/admin/leave", icon: HiOutlineCalendar },
+        { label: " Circum... Leave", path: "/admin/leave", icon: HiOutlineCalendar },
+      ]
+    },
+    { label: "View Reports", path: "/admin/reports/view", icon: HiOutlineDocumentText },
     // { label: "UI Permissions", path: "/admin/ui-permissions", icon: HiOutlineViewGrid},
   ],
   receptionist: [
     { label: "Dashboard", path: "/reception", icon: HiOutlineHome },
-    { label: "Visitor", path: "/reception/visitor", icon: HiOutlineClipboardList,},
+    { label: "Visitor", path: "/reception/visitor", icon: HiOutlineClipboardList, },
     { label: "Payments", path: "/reception/payments", icon: HiOutlineCurrencyDollar },
     { label: "Deliveries", path: "/reception/deliveries", icon: HiOutlineArchive },
     {
       label: "Boutique", path: "/reception/boutique", icon: HiOutlineViewGrid,
       children: [
-        { label: "Trade Product",  path: "/reception/boutique",         icon: HiOutlineViewGrid },
+        { label: "Trade Product", path: "/reception/boutique", icon: HiOutlineViewGrid },
         { label: "Recently Trade", path: "/reception/boutique/recently", icon: HiOutlineClipboardList },
       ]
     },
@@ -111,7 +119,7 @@ const menuItems: Record<UserRole, MenuItem[]> = {
     { label: "Dashboard", path: "/sales", icon: HiOutlineHome },
     { label: "Jobs", path: "/sales/jobs", icon: HiOutlineBriefcase },
     { label: "Stock", path: "/sales/stocks", icon: HiOutlineArchive },
-    { label: "Porforma Invoice", path: "/sales/proformas", icon: HiOutlineDocumentText},
+    { label: "Porforma Invoice", path: "/sales/proformas", icon: HiOutlineDocumentText },
     // { label: "Performa Invoice", path: "/sales/performaInvoice", icon: HiOutlineCurrencyDollar, permissionKey: "invoices.view" },
     { label: "My Leave", path: "/sales/leave", icon: HiOutlineCalendar },
     {
@@ -128,7 +136,7 @@ const menuItems: Record<UserRole, MenuItem[]> = {
     { label: "Procurement", path: "/finance/daf/procurement", icon: HiOutlineArchive },
     { label: "Casual Workers", path: "/hr/abanyabiraka", icon: HiOutlineUsers },
     { label: "Payroll", path: "/hr/payroll", icon: HiOutlineCurrencyDollar },
-    { label: "Leave Management", path: "/hr/leave", icon: HiOutlineCalendar },
+    { label: "Manage Permissions", path: "/hr/leave", icon: HiOutlineCalendar },
     {
       label: "Reports", path: "/hr/reports", icon: HiOutlineChartBar, children: [
         { label: "Generate Reports", path: "/hr/reports", icon: HiOutlineChartBar },
@@ -140,7 +148,7 @@ const menuItems: Record<UserRole, MenuItem[]> = {
   hobe: [
     { label: "Dashboard", path: "/hobe", icon: HiOutlineHome },
     { label: "Trade", path: "/hobe/trade", icon: HiOutlineCube },
-    {label: "Job", path: "/hobe/jobs", icon: HiOutlineBriefcase },
+    { label: "Job", path: "/hobe/jobs", icon: HiOutlineBriefcase },
     { label: "Requests", path: "/hobe/requests", icon: HiOutlineClipboardList },
     { label: "My Leave", path: "/hobe/leave", icon: HiOutlineCalendar },
     {
@@ -155,24 +163,24 @@ const menuItems: Record<UserRole, MenuItem[]> = {
     { label: "Job Approvals", path: "/finance/daf/approvals", icon: HiOutlineClipboardList },
     // { label: "Finance Control", path: "/finance/daf/control", icon: HiOutlineCurrencyDollar },
     { label: "Employees", path: "/finance/daf/hr", icon: HiOutlineUsers },
-    {label: "Causal Workers", path: "/finance/daf/abanyabiraka", icon: HiOutlineCurrencyDollar},
-    {label: "Payroll", path: "/finance/daf/payroll", icon: HiOutlineCurrencyDollar },
+    { label: "Causal Workers", path: "/finance/daf/abanyabiraka", icon: HiOutlineCurrencyDollar },
+    { label: "Payroll", path: "/finance/daf/payroll", icon: HiOutlineCurrencyDollar },
     // { label: "Quotations", path: "/finance/daf/quatation", icon: HiOutlineAdjustments, permissionKey: "finance.view" },
-        {
+    {
       label: "Stock", path: "/finance/daf/stock", icon: HiOutlineArchive, children: [
-        { label: "General Stock",  path: "/finance/daf/stock/general",  icon: HiOutlineArchive },
+        { label: "General Stock", path: "/finance/daf/stock/general", icon: HiOutlineArchive },
         { label: "Boutique Stock", path: "/finance/daf/stock/boutique", icon: HiOutlineArchive },
-        { label: "Binding Stock",  path: "/finance/daf/stock/binding",  icon: HiOutlineArchive },
+        { label: "Binding Stock", path: "/finance/daf/stock/binding", icon: HiOutlineArchive },
       ]
     },
     { label: "Departments", path: "/finance/daf/departments", icon: HiOutlineUsers },
     { label: "Production", path: "/finance/daf/production", icon: HiOutlineCube },
     {
       label: "Requests", path: "/finance/daf/requests", icon: HiOutlineClipboardList, children: [
-        { label: "Stock Manager",   path: "/finance/daf/stock-requests",     icon: HiOutlineClipboardList },
-        { label: "General Stock",   path: "/finance/daf/general-stock-requests", icon: HiOutlineArchive },
-        { label: "Receptionalist",  path: "/finance/daf/reception-requests", icon: HiOutlineClipboardList },
-        { label: "Procurement",     path: "/finance/daf/procurement",         icon: HiOutlineArchive },
+        { label: "Stock Manager", path: "/finance/daf/stock-requests", icon: HiOutlineClipboardList },
+        { label: "General Stock", path: "/finance/daf/general-stock-requests", icon: HiOutlineArchive },
+        { label: "Receptionalist", path: "/finance/daf/reception-requests", icon: HiOutlineClipboardList },
+        { label: "Procurement", path: "/finance/daf/procurement", icon: HiOutlineArchive },
       ]
     },
     { label: "Proforma Invoice", path: "/finance/daf/proforma", icon: HiOutlineDocumentText },
@@ -180,7 +188,7 @@ const menuItems: Record<UserRole, MenuItem[]> = {
     { label: "Operations", path: "/finance/daf/operations", icon: HiOutlineClipboardList },
     { label: "Extra Workers", path: "/finance/daf/extra-workers", icon: HiOutlineUsers },
     { label: "Emp Overtime", path: "/finance/daf/overtime-management", icon: HiOutlineClock },
-    { label: "Leave Management", path: "/hr/leave", icon: HiOutlineCalendar },
+    { label: "Permissions", path: "/hr/leave", icon: HiOutlineCalendar },
     {
       label: "Reports", path: "/finance/daf/reports", icon: HiOutlineChartBar, children: [
         { label: "Generate Reports", path: "/finance/daf/reports", icon: HiOutlineChartBar },
@@ -191,11 +199,11 @@ const menuItems: Record<UserRole, MenuItem[]> = {
   accountant: [
     { label: "Dashboard", path: "/finance/accountant1", icon: HiOutlineHome },
     { label: "Payments", path: "/finance/accountant1/payments", icon: HiOutlineCurrencyDollar },
-    { label: "Porforma Invoice", path: "/finance/accountant1/proformas", icon: HiOutlineDocumentText},
+    { label: "Porforma Invoice", path: "/finance/accountant1/proformas", icon: HiOutlineDocumentText },
 
     // { label: "Invoices", path: "/finance/accountant1/invoices", icon: HiOutlineDocumentText },
     // { label: "Documents", path: "/finance/accountant1/documents", icon: HiOutlineClipboardList },
-    { label: "Operations", path: "/finance/accountant1/operations", icon: HiOutlineClipboardList},
+    { label: "Operations", path: "/finance/accountant1/operations", icon: HiOutlineClipboardList },
     { label: "Proforma Invoice", path: "/finance/accountant1/proformas", icon: HiOutlineDocumentText },
     { label: "Recovery", path: "/finance/accountant2/recovery", icon: HiOutlineCurrencyDollar },
     { label: "Payroll", path: "/finance/accountant1/payroll", icon: HiOutlineCurrencyDollar },
@@ -220,10 +228,12 @@ const menuItems: Record<UserRole, MenuItem[]> = {
       ]
     },
     { label: "My Leave", path: "/production-manager/leave", icon: HiOutlineCalendar },
-    { label: "Reports", path: "/production-manager/reports", icon: HiOutlineChartBar, children: [
-      { label: "Generate Reports", path: "/production-manager/reports", icon: HiOutlineChartBar },
-      { label: "My Reports", path: "/production-manager/reports/my", icon: HiOutlineDocumentText },
-    ] },
+    {
+      label: "Reports", path: "/production-manager/reports", icon: HiOutlineChartBar, children: [
+        { label: "Generate Reports", path: "/production-manager/reports", icon: HiOutlineChartBar },
+        { label: "My Reports", path: "/production-manager/reports/my", icon: HiOutlineDocumentText },
+      ]
+    },
   ],
   stock: [
     { label: "Dashboard", path: "/stock", icon: HiOutlineHome },
@@ -257,22 +267,22 @@ const menuItems: Record<UserRole, MenuItem[]> = {
     },
   ],
   cashier: [
-    { label: "Dashboard",      path: "/cashier",                icon: HiOutlineHome },
+    { label: "Dashboard", path: "/cashier", icon: HiOutlineHome },
     {
       label: "Payments", path: "/cashier/payments", icon: HiOutlineCurrencyDollar,
       children: [
-        { label: "Jobs",              path: "/cashier/payments/jobs",     icon: HiOutlineBriefcase },
+        { label: "Jobs", path: "/cashier/payments/jobs", icon: HiOutlineBriefcase },
         { label: "Boutique Products", path: "/cashier/payments/boutique", icon: HiOutlineViewGrid },
       ]
     },
-    {label: "Withdraws",      path: "/cashier/withdrows",       icon: HiOutlineCurrencyDollar},
-    { label: "Expenses",       path: "/cashier/expenses",       icon: HiOutlineDocumentText },
+    { label: "Withdraws", path: "/cashier/withdrows", icon: HiOutlineCurrencyDollar },
+    { label: "Expenses", path: "/cashier/expenses", icon: HiOutlineDocumentText },
     { label: "Casual Workers", path: "/cashier/casual-workers", icon: HiOutlineUsers },
-    { label: "My Leave",       path: "/cashier/leave",          icon: HiOutlineCalendar },
+    { label: "My Leave", path: "/cashier/leave", icon: HiOutlineCalendar },
     {
       label: "Reports", path: "/cashier/reports", icon: HiOutlineChartBar, children: [
-        { label: "Generate Reports", path: "/cashier/reports",    icon: HiOutlineChartBar },
-        { label: "My Reports",       path: "/cashier/reports/my", icon: HiOutlineDocumentText },
+        { label: "Generate Reports", path: "/cashier/reports", icon: HiOutlineChartBar },
+        { label: "My Reports", path: "/cashier/reports/my", icon: HiOutlineDocumentText },
       ]
     },
   ],
@@ -336,7 +346,7 @@ export default function DashboardSidebar({
     userRole === "supervisor" &&
     !!myDepartment &&
     (myDepartment.name.toLowerCase().includes("binding") ||
-     myDepartment.name.toLowerCase().includes("finishing"));
+      myDepartment.name.toLowerCase().includes("finishing"));
   const [openDropdowns, setOpenDropdowns] = useState<Set<string>>(() => {
     // Auto-open dropdowns whose children match the current path on mount
     const initial = new Set<string>();
@@ -569,8 +579,8 @@ export default function DashboardSidebar({
                             if (window.innerWidth < 1024) onMobileClose();
                           }}
                           className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all duration-200 ${childIsActive
-                              ? "bg-primary-100 text-primary-600 font-semibold"
-                              : "text-custom-700 hover:bg-custom-100 hover:text-secondary-100"
+                            ? "bg-primary-100 text-primary-600 font-semibold"
+                            : "text-custom-700 hover:bg-custom-100 hover:text-secondary-100"
                             }`}
                         >
                           <child.icon className="w-4 h-4 flex-shrink-0" />
@@ -589,11 +599,10 @@ export default function DashboardSidebar({
         <div className="p-3 border-t border-custom-300 space-y-1">
           <button
             onClick={(e) => { (e.currentTarget as HTMLButtonElement).blur(); isUserClick.current = true; navigate(notifPath[userRole]); if (window.innerWidth < 1024) onMobileClose(); }}
-            className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
-              location.pathname === notifPath[userRole]
+            className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${location.pathname === notifPath[userRole]
                 ? "bg-primary-500 text-secondary-200"
                 : "text-custom-700 hover:bg-custom-100 hover:text-secondary-100"
-            } ${isCollapsed ? "justify-center" : ""}`}
+              } ${isCollapsed ? "justify-center" : ""}`}
             title={isCollapsed ? "Notifications" : undefined}
           >
             <HiOutlineBell className="w-5 h-5 flex-shrink-0" />
@@ -606,11 +615,10 @@ export default function DashboardSidebar({
           </button>
           <button
             onClick={(e) => { (e.currentTarget as HTMLButtonElement).blur(); isUserClick.current = true; navigate(guidePath[userRole]); if (window.innerWidth < 1024) onMobileClose(); }}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
-              location.pathname === guidePath[userRole]
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${location.pathname === guidePath[userRole]
                 ? "bg-primary-500 text-secondary-200"
                 : "text-custom-700 hover:bg-custom-100 hover:text-secondary-100"
-            } ${isCollapsed ? "justify-center" : ""}`}
+              } ${isCollapsed ? "justify-center" : ""}`}
             title={isCollapsed ? "User Guide" : undefined}
           >
             <HiOutlineQuestionMarkCircle className="w-5 h-5 flex-shrink-0" />
@@ -618,11 +626,10 @@ export default function DashboardSidebar({
           </button>
           <button
             onClick={(e) => { (e.currentTarget as HTMLButtonElement).blur(); isUserClick.current = true; navigate(settingsPath[userRole]); if (window.innerWidth < 1024) onMobileClose(); }}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
-              location.pathname === settingsPath[userRole]
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${location.pathname === settingsPath[userRole]
                 ? "bg-primary-500 text-secondary-200"
                 : "text-custom-700 hover:bg-custom-100 hover:text-secondary-100"
-            } ${isCollapsed ? "justify-center" : ""}`}
+              } ${isCollapsed ? "justify-center" : ""}`}
             title={isCollapsed ? "Settings" : undefined}
           >
             <HiOutlineCog className="w-5 h-5 flex-shrink-0" />

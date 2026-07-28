@@ -1,6 +1,6 @@
 /**
- * Admin Leave Management Page
- * Reuses the same HR leave management UI but under the admin role.
+ * Admin Permissions Page
+ * Reuses the same HR permissions UI but under the admin role.
  */
 import { useState } from "react";
 import {
@@ -333,8 +333,8 @@ export default function AdminLeaveManagementPage() {
               <HiOutlineCalendar className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-secondary-100">Leave Management</h1>
-              <p className="text-sm text-custom-700 mt-0.5">Review and manage all employee leave requests</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-secondary-100">Leave Managements</h1>
+              <p className="text-sm text-custom-700 mt-0.5">Review and manage all employee permissions</p>
             </div>
           </div>
           <button

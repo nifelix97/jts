@@ -428,9 +428,9 @@ export default function DAFUserGuide() {
         <div className="pc-header">
           <div className="pc-icon" style={{ background: 'var(--gold-pale)' }}>🌴</div>
           <div style={{ flex: 1 }}>
-            <div className="pc-title">7. Leave Management</div>
+            <div className="pc-title">7. Permissions</div>
             <p style={{ fontSize: '.8rem', color: 'var(--color-custom-700)', margin: '.2rem 0 0' }}>
-              Sidebar link: <SideLink>Leave Management</SideLink>
+              Sidebar link: <SideLink>Permissions</SideLink>
             </p>
           </div>
         </div>
@@ -441,7 +441,7 @@ export default function DAFUserGuide() {
 
           <div className="step-box" style={{ marginTop: '.6rem' }}>
             <div className="step-box-title">📋 How to view your leave history</div>
-            <StepItem num={1}>Click <SideLink>Leave Management</SideLink> in the sidebar.</StepItem>
+            <StepItem num={1}>Click <SideLink>Permissions</SideLink> in the sidebar.</StepItem>
             <img src={leaveImg} alt="Leave page" style={imgStyle} />
             <StepItem num={2}>Your leave requests are listed with type, dates, status (Pending / Approved / Rejected), and reason.</StepItem>
           </div>

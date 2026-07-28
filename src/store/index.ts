@@ -36,6 +36,7 @@ import { stockRequestsApi } from "./services/stockRequestsService";
 import { receptionRequestsApi } from "./services/receptionRequestsService";
 import { extraWorkersApi } from "./services/extraWorkersService";
 import { overtimeApi } from "./services/overtimeService";
+import { annualLeaveApi } from "./services/annualLeaveService";
 import authReducer from "./slices/authSlice";
 
 export const store = configureStore({
@@ -78,6 +79,7 @@ export const store = configureStore({
     [receptionRequestsApi.reducerPath]: receptionRequestsApi.reducer,
     [extraWorkersApi.reducerPath]: extraWorkersApi.reducer,
     [overtimeApi.reducerPath]: overtimeApi.reducer,
+    [annualLeaveApi.reducerPath]: annualLeaveApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -117,7 +119,8 @@ export const store = configureStore({
       .concat(stockRequestsApi.middleware)
       .concat(receptionRequestsApi.middleware)
       .concat(extraWorkersApi.middleware)
-      .concat(overtimeApi.middleware),
+      .concat(overtimeApi.middleware)
+      .concat(annualLeaveApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
