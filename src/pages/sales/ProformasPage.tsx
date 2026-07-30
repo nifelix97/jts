@@ -128,7 +128,7 @@ function buildProformaHtml(q: Proforma): string {
   </style></head><body>
   <div class="page">
     <div class="header">
-      <img src="/header.png" alt="Pallotti Presse" style="width:100%;display:block"/>
+      <img src="/header.png" alt="Santrack" style="width:100%;display:block"/>
     </div>
     <div class="body">
       <div class="top-info">
@@ -160,7 +160,7 @@ function buildProformaHtml(q: Proforma): string {
       <div class="footer-cols">
         <div><div>B.P. 863 Kigali - Rwanda</div><div>TIN / <strong>T.V.A. N° 100021520</strong></div></div>
         <div><div>Tél: Reception (+250) 788 313 617 / (+250) 788 304 549</div><div>No. RC: 536 / 09 / NYR</div></div>
-        <div><div>E-mail: pallottipresse@yahoo.com</div><div>Compte : BK : <strong>100000174372</strong></div></div>
+        <div><div>E-mail: Santrackpresse@yahoo.com</div><div>Compte : BK : <strong>100000174372</strong></div></div>
       </div>
       <div class="footer-tagline">Rapidité · Qualité · Innovation · Esprit d'Equipe</div>
     </div>

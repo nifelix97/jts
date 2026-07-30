@@ -78,7 +78,7 @@ export default function LoginPage() {
           "
         >
           <div className="text-white lg:text-2xl">
-            <h1>Welcome Pallotti Presse System</h1>
+            <h1>Welcome Santrack System</h1>
           </div>
           <DotLottieReact
             data={loginAnimation}

@@ -473,12 +473,12 @@ export default function DashboardSidebar({
         <div className="flex items-center justify-between p-4 border-b border-custom-300">
           {!isCollapsed && (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-primary-300 flex items-center justify-center">
                 <span className="text-secondary-200 font-bold text-sm">
-                  <img src="/logo.jpeg" alt="Logo" className="w-6 h-6 rounded-lg" />
+                  <img src="/logo.jpeg" alt="Logo" className="w-8 h-8 rounded-lg" />
                 </span>
               </div>
-              <span className="font-bold text-secondary-100 text-lg">Pallotti Presse</span>
+              <span className="font-bold text-secondary-100 text-lg">Santrack</span>
             </div>
           )}
           <button

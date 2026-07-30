@@ -81,7 +81,7 @@ function printSamplePdf(sample: DepartmentSample) {
     <div class="footer-row">
       <div>B.P. 863 Kigali - Rwanda<br/>TIN / <strong>T.V.A. N0 100021520</strong></div>
       <div style="text-align:center">Tel: (+250) 788 313 817 / (+250) 788 304 549<br/>No. RC: 536 / 09 / NYR</div>
-      <div style="text-align:right">E-mail: pallottipresse@yahoo.com<br/>Compte BK: <strong>100000174372</strong></div>
+      <div style="text-align:right">E-mail: Santrackpresse@yahoo.com<br/>Compte BK: <strong>100000174372</strong></div>
     </div>
     <div class="footer-tagline">Rapidite - Qualite - Innovation - Esprit d Equipe</div>
   </div>

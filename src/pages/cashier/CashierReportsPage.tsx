@@ -79,12 +79,12 @@ const PAGE_SIZE = 10;
 // ─── PDF helpers ──────────────────────────────────────────────────────────────
 
 const COMPANY = {
-  name:    "PALLOTTI PRESSE LTD",
+  name:    "Santrack LTD",
   address: "B.P. 863 Kigali - Rwanda",
   tin:     "TIN / T.V.A.: NO 100021520",
   tel:     "Tel: Reception (+250) 788 313 617 / (+250) 788 304 549",
   rc:      "No. RC: 536 / 09 / NYR",
-  email:   "E-mail: pallottipresse@yahoo.com",
+  email:   "E-mail: Santrackpresse@yahoo.com",
   compte:  "Compte: BK: 10000017 4372",
   motto:   "Rapidite - Qualite - Innovation - Esprit d'Equipe",
 };

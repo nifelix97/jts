@@ -78,7 +78,7 @@ export function printQuotation(d: JobDetails, jobItems?: JobItem[]) {
 
   <!-- HEADER -->
   <div class="header">
-    <img src="/header.png" alt="Pallotti Presse Header" />
+    <img src="/header.png" alt="Santrack Header" />
   </div>
 
   <!-- BODY -->
@@ -153,7 +153,7 @@ export function printQuotation(d: JobDetails, jobItems?: JobItem[]) {
         <div>No. RC: 536 / 09 / NYR</div>
       </div>
       <div>
-        <div>E-mail: pallottipresse@yahoo.com</div>
+        <div>E-mail: Santrackpresse@yahoo.com</div>
         <div>Compte : BK : <strong>100000174372</strong></div>
       </div>
     </div>
